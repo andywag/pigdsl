@@ -4,8 +4,9 @@ package org.simplifide.pig
  * Created by andy on 10/11/14.
  */
 
+import org.simplifide.pig.model.PigObjects.{PigDouble, PigString}
 import org.simplifide.pig.model.{NewSchema, PigObjects}
-import org.simplifide.pig.parser.PigExpression
+import org.simplifide.pig.parser.{DirectTemplateParser, PigExpression}
 import org.simplifide.template.Template
 import Template._
 
@@ -15,7 +16,17 @@ object PigTemplate {
 
   def createTemplate(model:Any):Template = {
     model match {
-      case   PigObjects.NULL        => Template.StringToTemplate("null")
+
+      case   PigObjects.NULL         => Template.StringToTemplate("null")
+      case x:DirectTemplateParser.TemplateModel => x.template
+      case x:PigString               => surround(x.name,"'","'")
+      case x:PigDouble               => x.value.toString ~ "F"
+      case x:PigExpression.Arrow     => C(x.lhs) ~ "#" ~ C(x.rhs)
+      case x:PigObjects.Tuple        => paren(commaList(x.expressions))
+      case x:PigObjects.Bag          => curly(commaList(x.expressions))
+      case x:PigObjects.MapPig       => brack(commaList(x.expressions))
+      case x:PigExpression.IsNull    =>      C(x.expression) ~ " is null "
+      case x:PigExpression.IsNotNull => C(x.expression) ~ " is not null "
       case x:PigExpression.QuestionGroup => C(x.lhs) ~ " ? " ~ C(x.rhs)
       case x:PigExpression.QuestionOpen  => C(x.lhs) ~ " : " ~ C(x.tr)
       case x:PigExpression.QuestionClose => C(x.lhs) ~ " ? " ~ C(x.tr) ~ " : " ~ C(x.fa)
@@ -27,6 +38,7 @@ object PigTemplate {
       case x:PigObjects.OrderBy     => orderBy(x)
       case x:NewSchema.Pair         => Template.StringToTemplate(x.complexName.toString)
       case x:NewSchema.TupleDollar  => Template.StringToTemplate(x.complexName.toString)
+      case x:NewSchema.Tuple        => C(x.complexName)
       case x:NewSchema              => schema(x)
       case x:PigObjects.PigSymbol   => x.symbol.toString().substring(1)
       case x:PigObjects.PigInt      => x.value.toString

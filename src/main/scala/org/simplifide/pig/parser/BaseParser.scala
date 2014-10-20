@@ -2,7 +2,7 @@ package org.simplifide.pig.parser
 
 import org.simplifide.pig.{PigContext, PigExec, PigTemplate}
 import org.simplifide.pig.model.{PigObjects, PigModel}
-import org.simplifide.pig.model.PigObjects.{PigSymbol, Loader, PigInt}
+import org.simplifide.pig.model.PigObjects._
 import org.apache.pig.LoadFunc
 
 import scala.collection.mutable.ListBuffer
@@ -10,8 +10,10 @@ import scala.collection.mutable.ListBuffer
 /**
  * Created by andy on 10/11/14.
  */
-trait BaseParser {
+trait BaseParser extends DirectTemplateParser {
 
+  implicit def Double2Pig(value:Double)  = PigDouble(value)
+  implicit def String2Pig(value:String)  = PigString(value)
   implicit def Symbol2Pig(symbol:Symbol) = PigSymbol(symbol)
   implicit def Int2Pit(value:Int)        = PigInt(value)
 
@@ -23,6 +25,11 @@ trait BaseParser {
 
   implicit val parser:BaseParser = this
 
+
+  def T(values:PigExpression*)                 = new PigObjects.Tuple(values.toList)
+  def B(values:PigObjects.Tuple*)              = new PigObjects.Bag(values.toList)
+  def M(values:(PigExpression,PigExpression)*) =
+    new PigObjects.MapPig(values.toList.map(x =>new PigExpression.Arrow(x._1,x._2)))
 
   def load(value:String)           = new Loader(value)
   def store(expr:PigExpression)    = new PigObjects.Store(expr)
@@ -50,6 +57,8 @@ trait BaseParser {
   // Operations
   def flatten(expr:PigExpression)  = new PigObjects.Flatten(expr)
   def isEmpty(expr:PigExpression)  = new PigObjects.IsEmpty(expr)
+
+
 
 
   def text = items.map(PigTemplate.createTemplate(_)).map(_.create)

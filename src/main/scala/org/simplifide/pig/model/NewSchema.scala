@@ -9,6 +9,7 @@ import scala.collection.mutable.ListBuffer
  */
 trait NewSchema  {
 
+  /** List of Items Contained in this Schema */
   val newItems = new ListBuffer[NewSchema.Element]()
 
   def item(name:String, typ:NewSchema.Type, parent:Option[NewSchema.Element]=None) = {
@@ -36,18 +37,20 @@ object NewSchema {
   case class Tuple(override val name:String, val parent:Option[Element] = None) extends TupleTrait {
     override def complexName = parent.map(_.complexName + ".").getOrElse("") + name
   }
+
+  case class TupleSchema(val schema:NewSchema) extends TupleTrait {}
   
   
-  trait Element extends PigExpression with PigModel {
+  trait Element extends PigModel {
     def complexName = name
     def asc  = new Ascending(this)
     def desc = new Descending(this)
   }
 
-  case class Ascending(val value:PigExpression)   extends PigExpression with PigModel {
+  case class Ascending(val value:PigExpression)   extends PigModel {
     override val name = value.create.name + " asc"
   }
-  case class Descending(val value:PigExpression)  extends PigExpression with PigModel {
+  case class Descending(val value:PigExpression)  extends PigModel {
     override val name = value.create.name + " desc"
   }
 

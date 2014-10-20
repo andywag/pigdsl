@@ -15,7 +15,6 @@ trait PigExpression {
   def /(rhs:PigExpression) = new PigExpression.Binary("/",this,rhs)
   def %(rhs:PigExpression) = new PigExpression.Binary("%",this,rhs)
   //def ??(rhs:PigExpression.QuestionGroup) = new PigExpression.QuestionClose(this,rhs.lhs,rhs.rhs)
-  def ??(rhs:PigExpression) = new PigExpression.QuestionOpen(this,rhs)
 
 
   def ==(rhs:PigExpression) = new PigExpression.Binary("==",this,rhs)
@@ -25,19 +24,28 @@ trait PigExpression {
   def <(rhs:PigExpression) = new PigExpression.Binary("<",this,rhs)
   def >=(rhs:PigExpression) = new PigExpression.Binary(">=",this,rhs)
   def <=(rhs:PigExpression) = new PigExpression.Binary("<=",this,rhs)
+  def ->(rhs:PigExpression)  = new PigExpression.Arrow(this,rhs)
 
+  def ??(rhs:PigExpression) = new PigExpression.QuestionOpen(this,rhs)
   def :: (rhs:PigExpression.QuestionOpen) = new PigExpression.QuestionClose(rhs.lhs,rhs.tr,this)
+
+  def isNull     = new PigExpression.IsNull(this)
+  def isNotNull  = new PigExpression.IsNotNull(this)
 }
 
 object PigExpression {
 
-  case class Binary(op:String, lhs:PigExpression, rhs:PigExpression) extends PigExpression with PigModel
+  case class IsNull(expression:PigExpression) extends PigModel
+  case class IsNotNull(expression:PigExpression) extends PigModel
 
-  case class QuestionGroup(lhs:PigExpression, rhs:PigExpression) extends PigExpression with PigModel
+  case class Binary(op:String, lhs:PigExpression, rhs:PigExpression) extends PigModel
+  case class Arrow(lhs:PigExpression,rhs:PigExpression) extends PigModel
+
+  case class QuestionGroup(lhs:PigExpression, rhs:PigExpression) extends PigModel
 
 
-  case class QuestionOpen(lhs:PigExpression, val tr:PigExpression) extends PigExpression with PigModel
+  case class QuestionOpen(lhs:PigExpression, val tr:PigExpression) extends PigModel
 
-  case class QuestionClose(lhs:PigExpression, val tr:PigExpression, val fa:PigExpression) extends PigExpression with PigModel
+  case class QuestionClose(lhs:PigExpression, val tr:PigExpression, val fa:PigExpression) extends PigModel
 
 }

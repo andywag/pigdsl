@@ -11,15 +11,20 @@ import org.simplifide.pig.parser.{BaseParser, PigExpression}
  */
 object PigObjects {
 
-  case object NULL extends PigExpression with PigModel
+  case object NULL extends PigModel
 
-  case class Dollar(val value:Int) extends PigExpression with PigModel {
+  case class Tuple(val expressions:List[PigExpression])        extends PigModel
+  case class Bag(val expressions:List[Tuple])                  extends PigModel
+  case class MapPig(val expressions:List[PigExpression.Arrow]) extends PigModel
+
+  case class Dollar(val value:Int) extends PigModel {
     override val name = s"$value"
   }
 
-  case class PigSymbol(val symbol:Symbol) extends PigExpression with PigModel {
-    override val name = symbol.toString().substring(1)
+  case class PigString(override val name:String) extends PigModel
+  case class PigDouble(val value:Double) extends PigModel
 
+  trait PigAlias extends PigModel {
     def := (rhs:PigExpression)(implicit parser:BaseParser) = {
       val ass = new Assign(this,rhs)
       parser.items.append(ass)
@@ -29,29 +34,35 @@ object PigObjects {
     def iff(rhs:PigExpression) = new IfExpression(this,rhs)
   }
 
-  case class Flatten(val expr:PigExpression) extends PigExpression with PigModel
-  case class IsEmpty(val expr:PigExpression) extends PigExpression with PigModel
+  case class PigSymbol(val symbol:Symbol) extends PigAlias {
+    override val name = symbol.toString().substring(1)
+  }
+
+  case class PigAliasName(override val name:String) extends PigAlias
+
+  case class Flatten(val expr:PigExpression) extends PigModel
+  case class IsEmpty(val expr:PigExpression) extends PigModel
 
 
-  case class IfExpression(val lhs:PigExpression, val rhs:PigExpression) extends PigExpression with PigModel {
+  case class IfExpression(val lhs:PigExpression, val rhs:PigExpression) extends PigModel {
 
   }
 
-  case class SymbolBy(val lhs:PigExpression, val rhs:PigExpression) extends PigExpression with PigModel {
+  case class SymbolBy(val lhs:PigExpression, val rhs:PigExpression) extends PigModel {
     def left  = new SymbolByDirection(this,"left")
     def right = new SymbolByDirection(this,"right")
     def full  = new SymbolByDirection(this,"full")
     def outer = new SymbolByDirection(this,"outer")
   }
-  case class SymbolByDirection(val symbol:SymbolBy, val text:String) extends PigExpression with PigModel {
+  case class SymbolByDirection(val symbol:SymbolBy, val text:String) extends PigModel {
     def outer = this.copy(text = this.text + " outer")
   }
 
-  case class PigInt(val value:Int) extends PigExpression with PigModel {
+  case class PigInt(val value:Int) extends PigModel {
     override val name = value.toString
   }
 
-  case class Assign(val lhs:PigExpression, val rhs:PigExpression) extends PigExpression with PigModel
+  case class Assign(val lhs:PigExpression, val rhs:PigExpression) extends PigModel
 
   case class Loader(val ident:String,
                     val usingModel:Option[String]=None,
@@ -64,7 +75,7 @@ object PigObjects {
 
   case class Store(val input:PigExpression,
                    val intoModel:Option[String]=None,
-                   val usingModel:Option[String]=None) extends PigExpression with PigModel {
+                   val usingModel:Option[String]=None) extends PigModel {
     def into(value:String)                = copy(intoModel  = Some(value))
     def using(value:String)               = copy(usingModel = Some(value))
   }
@@ -74,29 +85,29 @@ object PigObjects {
   }
 
   case class OrderBy(val input:PigExpression, val inputs:List[PigExpression], 
-                     val par:Option[PigExpression]= None) extends PigExpression with PigModel {
+                     val par:Option[PigExpression]= None) extends PigModel {
     def parallel(expression:PigExpression) = copy(par = Some(expression))
   }
 
-  case class Rank(val input:PigExpression, val by:List[PigExpression]=List(), val denseO:Boolean = false) extends PigExpression with PigModel {
+  case class Rank(val input:PigExpression, val by:List[PigExpression]=List(), val denseO:Boolean = false) extends PigModel {
     def by(expressions:PigExpression*) = copy(by = this.by ::: expressions.toList)
     def dense = copy(denseO = true)
   }
 
 
-  object All extends PigExpression with PigModel {
+  object All extends PigModel {
     override val name = "ALL"
   }
 
   /*
-  case class Group(val input:PigExpression) extends PigExpression with PigModel{
+  case class Group(val input:PigExpression) extends PigModel{
     def all                            = new GroupBy(input,List(All))
     def by(expressions:PigExpression*) = new GroupBy(input,expressions.toList)
   }
   */
 
 
-  class UsingObject(val value:String) extends PigExpression with PigModel
+  class UsingObject(val value:String) extends PigModel
 
   case object Collected extends UsingObject("'collected'")
   case object Merge     extends UsingObject("'merge'")
@@ -105,7 +116,7 @@ object PigObjects {
                      val inputs:List[PigExpression],
                      val using:Option[UsingObject] = None,
                      val partitionBy:Option[String] = None,
-                     val par:Option[PigExpression] = None) extends PigExpression with PigModel {
+                     val par:Option[PigExpression] = None) extends PigModel {
 
     def using(obj:UsingObject)         = copy(using = Some(obj))
     def partition(input:String)        = copy(partitionBy = Some(input))
@@ -114,53 +125,53 @@ object PigObjects {
 
   case class Cross(val inputs:List[PigExpression],
                    val partitionBy:Option[String] = None,
-                   val par:Option[PigExpression] = None) extends PigExpression with PigModel {
+                   val par:Option[PigExpression] = None) extends PigModel {
 
   }
 
-  case class Cube(val input:PigExpression) extends PigExpression with PigModel {
+  case class Cube(val input:PigExpression) extends PigModel {
     def by(inputs:PigExpression*) = new CubeBy(input,inputs.toList)
   }
 
   case class CubeBy (val input:PigExpression,
                      val inputs:List[PigExpression],
-                     val par:Option[PigExpression] = None) extends PigExpression with PigModel {
+                     val par:Option[PigExpression] = None) extends PigModel {
     def parallel(input:PigExpression)  = copy(par = Some(input))
   }
 
 
   trait CubeInput {val input:List[PigExpression]}
-  case class CubeInner(val input:List[PigExpression]) extends PigExpression with PigModel with CubeInput
-  case class RollUp(val input:List[PigExpression]) extends PigExpression with PigModel    with CubeInput
+  case class CubeInner(val input:List[PigExpression]) extends PigModel with CubeInput
+  case class RollUp(val input:List[PigExpression]) extends PigModel    with CubeInput
 
 
   case class Distinct(val input:PigExpression,
                       val partitionBy:Option[String] = None,
-                      val par:Option[PigExpression] = None) extends PigExpression with PigModel {
+                      val par:Option[PigExpression] = None) extends PigModel {
 
     def partition(input:String)        = copy(partitionBy = Some(input))
     def parallel(input:PigExpression)  = copy(par = Some(input))
 
   }
 
-  case class Dump(val input:PigExpression) extends PigExpression with PigModel
+  case class Dump(val input:PigExpression) extends PigModel
 
   case class LoaderSchema(val loader:Loader, val schema:Schema) extends PigModel
 
-  case class Filter(val input:PigExpression) extends PigExpression with PigModel {
+  case class Filter(val input:PigExpression) extends PigModel {
     def by(expr:PigExpression) = new FilterBy(input,expr)
   }
 
-  case class Import(val input:String) extends PigExpression with PigModel
+  case class Import(val input:String) extends PigModel
 
 
-  class JoinUsing(val value:String) extends PigExpression with PigModel
+  class JoinUsing(val value:String) extends PigModel
   case object Replicated extends JoinUsing("'replicated'")
   case object Skewed extends JoinUsing("'skewed'")
   //case object Merge extends JoinUsing("'merge'")
   case object MergeSparse extends JoinUsing("'merge-sparse'")
 
-  case class Join(val expressions:List[PigExpression])extends PigExpression with PigModel {
+  case class Join(val expressions:List[PigExpression])extends PigModel {
     def using(expr:PigExpression)      = new JoinBy(this,Some(expr))
     def partition(input:String)        = new JoinBy(this,None, Some(input))
     def parallel(input:PigExpression)  = new JoinBy(this,None,None, Some(input))
@@ -169,7 +180,7 @@ object PigObjects {
   case class JoinBy(val join:Join,
                     val using:Option[PigExpression] = None,
                     val partitionBy:Option[String] = None,
-                    val par:Option[PigExpression] = None) extends PigExpression with PigModel {
+                    val par:Option[PigExpression] = None) extends PigModel {
     def using(input:PigExpression)     = copy(using = Some(input))
     def partition(input:String)        = copy(partitionBy = Some(input))
     def parallel(input:PigExpression)  = copy(par = Some(input))
@@ -177,64 +188,64 @@ object PigObjects {
   }
 
 
-  case class FilterBy(val input:PigExpression, val byTerm:PigExpression) extends PigExpression with PigModel
+  case class FilterBy(val input:PigExpression, val byTerm:PigExpression) extends PigModel
 
-  case class Limit(val input:PigExpression, val limit:PigExpression) extends PigExpression with PigModel
-  case class Sample(val input:PigExpression, val limit:PigExpression) extends PigExpression with PigModel
+  case class Limit(val input:PigExpression, val limit:PigExpression) extends PigModel
+  case class Sample(val input:PigExpression, val limit:PigExpression) extends PigModel
 
-  case class Split(val input:PigExpression) extends PigExpression with PigModel {
+  case class Split(val input:PigExpression) extends PigModel {
     def into(expressions:PigExpression*) = new SplitInto(input,expressions.toList)
   }
 
-  case class SplitInto(val input:PigExpression, val expressions:List[PigExpression]) extends PigExpression with PigModel
+  case class SplitInto(val input:PigExpression, val expressions:List[PigExpression]) extends PigModel
 
-  case class Stream(val inputs:List[PigExpression]) extends PigExpression with PigModel {
+  case class Stream(val inputs:List[PigExpression]) extends PigModel {
     def through(expr:PigExpression) = new StreamThrough(this,expr)
   }
-  case class StreamThrough(val stream:Stream, val through:PigExpression, schema:Option[NewSchema] = None) extends PigExpression with PigModel {
+  case class StreamThrough(val stream:Stream, val through:PigExpression, schema:Option[NewSchema] = None) extends PigModel {
     def as(schema:NewSchema)              = copy(schema = Some(schema))
   }
 
-  case object UnionBase extends PigExpression with PigModel {
+  case object UnionBase extends PigModel {
     def onschema = UnionOnSchema
     def apply(expressions:PigExpression*) = new Union(expressions.toList,false)
   }
-  case object UnionOnSchema extends PigExpression with PigModel {
+  case object UnionOnSchema extends PigModel {
     def apply(expressions:PigExpression*) = new Union(expressions.toList,true)
   }
 
-  case class Union(val expressions:List[PigExpression],val onSchema:Boolean) extends PigExpression with PigModel
+  case class Union(val expressions:List[PigExpression],val onSchema:Boolean) extends PigModel
 
 
-  case class MapReduce(val value:String) extends PigExpression with PigModel {
+  case class MapReduce(val value:String) extends PigModel {
     def store(expr:PigExpression) = new MapReduceStore(value, expr)
   }
-  case class MapReduceStore(val jar:String, val store:PigExpression) extends PigExpression with PigModel{
+  case class MapReduceStore(val jar:String, val store:PigExpression) extends PigModel{
     def into(location:String) = new MapReduceStoreInto(jar,store,location)
   }
-  case class MapReduceStoreInto(val jar:String, val store:PigExpression, val into:String) extends PigExpression with PigModel{
+  case class MapReduceStoreInto(val jar:String, val store:PigExpression, val into:String) extends PigModel{
     def using(func:String) = new MapReduceStoreUsing(jar,store,into,func)
   }
-  case class MapReduceStoreUsing(val jar:String, val store:PigExpression, val into:String, val usingStore:String) extends PigExpression with PigModel{
+  case class MapReduceStoreUsing(val jar:String, val store:PigExpression, val into:String, val usingStore:String) extends PigModel{
     def load(input:String) = new MapReduceLoad(this,input)
   }
-  case class MapReduceLoad(val store:MapReduceStoreUsing, val location:String) extends PigExpression with PigModel {
+  case class MapReduceLoad(val store:MapReduceStoreUsing, val location:String) extends PigModel {
     def using(input:String) = new MapReduceLoadUsing(store,location,input)
   }
-  case class MapReduceLoadUsing(val store:MapReduceStoreUsing, val location:String, val using:String) extends PigExpression with PigModel {
+  case class MapReduceLoadUsing(val store:MapReduceStoreUsing, val location:String, val using:String) extends PigModel {
     def as(schema:NewSchema) = MapReduceSchema(this,schema)
   }
-  case class MapReduceSchema(val using:MapReduceLoadUsing, val schema:NewSchema) extends PigExpression with PigModel
+  case class MapReduceSchema(val using:MapReduceLoadUsing, val schema:NewSchema) extends PigModel
 
 
-  case class ForEach(val input:PigExpression) extends PigExpression with PigModel {
+  case class ForEach(val input:PigExpression) extends PigModel {
     def apply(expressions:PigExpression*) = new ForEachApply(input,expressions.toList)
     def generate(expr:PigExpression*) = new ForEachGenerate(input, expr.toList, None)
   }
 
-  case class ForEachApply(val input:PigExpression, val inputs:List[PigExpression]) extends PigExpression with PigModel
+  case class ForEachApply(val input:PigExpression, val inputs:List[PigExpression]) extends PigModel
 
-  case class ForEachGenerate(val input:PigExpression, val expr:List[PigExpression], val as:Option[NewSchema]) extends PigExpression with PigModel {
+  case class ForEachGenerate(val input:PigExpression, val expr:List[PigExpression], val as:Option[NewSchema]) extends PigModel {
     def as(schema:NewSchema) = copy(as = Some(schema))
   }
 

@@ -6,7 +6,7 @@ import org.simplifide.pig.parser.BaseParser
 
 import org.scalatest._
 import org.simplifide.pig.test.TestSchemas.ComplexSchema.{t2, t1}
-import org.simplifide.pig.test.TestSchemas.{Voter, ComplexSchema, Student}
+import org.simplifide.pig.test.TestSchemas.{StudentHolder, Voter, ComplexSchema, Student}
 
 import scala.reflect.io.Path
 
@@ -47,15 +47,27 @@ import scala.reflect.io.Path
     ->(dump('b))
   }
 
-  class NullTest extends BasicPigTest("Group","",Some(1953912989)) {
+  class NullTest extends BasicPigTest("Group","",Some(865146468)) {
     import TestSchemas.Student._
-    import TestSchemas.Voter._
-    'a := load(baseLocation + "student.txt") using "PigStorage(' ')" as Student
-    'v := load(baseLocation + "voter.txt") using "PigStorage(' ')" as Student
-    'b := cogroup('a by Student.name, 'v by Voter.name)
-    'c := foreach ('b) generate (flatten( isEmpty('a) ?? NULL :: 'a), flatten(isEmpty('b) ?? NULL :: 'b ))
+    'a1 := load(baseLocation + "student.txt") using "PigStorage(' ')" as Student
+    'a2 := load(baseLocation + "student.txt") using "PigStorage(' ')" as Student
+
+    'c1 := filter ('a1) by (Student.name isNotNull)
+    'c2 := filter ('a2) by (Student.name isNotNull)
+    'b := join('c1 by age, 'c2 by age)
     ->(store('b) into(tempResults) using "PigStorage(' ')")
     ->(dump('b))
+  }
+
+  class FilterTest extends BasicPigTest("Filter","",Some(1129032221)) {
+    import TestSchemas.StudentHolder._
+    'a := load(baseLocation + "studentT.txt") using "PigStorage(' ')" as StudentHolder
+    'c := filter ('a) by S === T("John",18,4.0)
+    'b := foreach ('c) generate (S.name1, M(("A","B")),T(1,2,3), B(T(1,2), T(2,3)))
+
+    ->(store('b) into(tempResults) using "PigStorage(' ')")
+    ->(dump('b))
+
   }
 
 

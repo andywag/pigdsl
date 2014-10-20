@@ -35,6 +35,7 @@ object Template   {
   def surround(input:Template, front:Template, back:Template) = new Surround(input, front, back)
   def curly(input:Template) = surround(input,"{","}")
   def paren(input:Template) = surround(input,"(",")")
+  def brack(input:Template) = surround(input,"[","]")
   def parenComma(input:Template) = paren(commaSep(input))
   def qu(condition:Boolean, tr:Template, fa:Template) = new Question(condition,tr, fa)
 

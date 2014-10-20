@@ -6,5 +6,6 @@ package org.simplifide.pig.test
 object TestConstants {
   val baseLocation = "/home/andy/IdeaProjects/pig/src/test/data/"
   val tempResults  = baseLocation + "results"
+  val tempResults1  = baseLocation + "results1"
 
 }

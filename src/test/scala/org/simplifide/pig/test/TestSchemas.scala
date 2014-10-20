@@ -1,7 +1,7 @@
 package org.simplifide.pig.test
 
 import org.simplifide.pig.model.NewSchema
-
+import org.simplifide.pig.model.NewSchema.TupleSchema
 
 
 /**
@@ -40,5 +40,17 @@ object TestSchemas {
     val registration  = item("registration",NewSchema.String)
     val donation      = item("donation",NewSchema.Float)
   }
+
+  object StudentHolder extends NewSchema {
+    object S extends NewSchema.Tuple("S") {
+      val name1  = item("name",NewSchema.String)
+      val age    = item("age",NewSchema.Int)
+      val gpa    = item("gpa",NewSchema.Float)
+    }
+    item("S",S)
+
+  }
+
+
 
 }
