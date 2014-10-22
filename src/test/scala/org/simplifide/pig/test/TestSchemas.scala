@@ -26,6 +26,7 @@ object TestSchemas {
     }
     item("t1",t1)
     item("t2",t2)
+    item("t3",NewSchema.Map)
   }
 
   object Integer extends NewSchema {

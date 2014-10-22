@@ -67,8 +67,27 @@ import scala.reflect.io.Path
 
     ->(store('b) into(tempResults) using "PigStorage(' ')")
     ->(dump('b))
-
   }
+
+  class ExpressionTest2 extends BasicPigTest2("Expression","") {
+    import TestSchemas.Student._
+    'a := load(baseLocation + "student.txt") using "PigStorage(' ')" as Student
+    'a1 := load(baseLocation + "student.txt") using "PigStorage(' ')" as Student
+    'b := foreach ('a) generate(STAR)
+    check("b",Some(-1969659138))
+    'c := filter ('a) by not(Student.name === "Mary")
+    check("c",Some(-2031232714))
+    'd := join('a by $(0)-->$(1), 'a1 by $(0)-->$(1))
+    check("d",Some(995180772))
+
+    'e := foreach ('a) generate (Case(age) when (18) then ("here") when (20) then ("there") Else ("nowhere")  )
+  }
+
+  // TODO : Need to Support Map Schema -- With Type
+
+
+
+
 
 
 

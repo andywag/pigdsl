@@ -62,6 +62,7 @@ object NewSchema {
   case object Int    extends Type
   case object String extends Type
   case object Float  extends Type
+  case object Map    extends Type
   //case object Tuple  extends Type
 
 

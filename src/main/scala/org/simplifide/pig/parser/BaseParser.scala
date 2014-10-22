@@ -10,7 +10,10 @@ import scala.collection.mutable.ListBuffer
 /**
  * Created by andy on 10/11/14.
  */
-trait BaseParser extends DirectTemplateParser {
+
+
+trait BaseParser extends DirectTemplateParser  {
+
 
   implicit def Double2Pig(value:Double)  = PigDouble(value)
   implicit def String2Pig(value:String)  = PigString(value)
@@ -57,7 +60,7 @@ trait BaseParser extends DirectTemplateParser {
   // Operations
   def flatten(expr:PigExpression)  = new PigObjects.Flatten(expr)
   def isEmpty(expr:PigExpression)  = new PigObjects.IsEmpty(expr)
-
+  def Case(expr:PigExpression)      = new DirectTemplateParser.CaseClose(expr)
 
 
 

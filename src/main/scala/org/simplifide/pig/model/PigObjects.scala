@@ -177,10 +177,10 @@ object PigObjects {
     def parallel(input:PigExpression)  = new JoinBy(this,None,None, Some(input))
 
   }
-  case class JoinBy(val join:Join,
-                    val using:Option[PigExpression] = None,
-                    val partitionBy:Option[String] = None,
-                    val par:Option[PigExpression] = None) extends PigModel {
+  case class JoinBy(join:Join,
+                    using:Option[PigExpression] = None,
+                    partitionBy:Option[String] = None,
+                    par:Option[PigExpression] = None) extends PigModel {
     def using(input:PigExpression)     = copy(using = Some(input))
     def partition(input:String)        = copy(partitionBy = Some(input))
     def parallel(input:PigExpression)  = copy(par = Some(input))
@@ -248,6 +248,11 @@ object PigObjects {
   case class ForEachGenerate(val input:PigExpression, val expr:List[PigExpression], val as:Option[NewSchema]) extends PigModel {
     def as(schema:NewSchema) = copy(as = Some(schema))
   }
+
+
+
+
+
 
 
 }

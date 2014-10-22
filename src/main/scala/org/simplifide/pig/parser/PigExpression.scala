@@ -31,6 +31,9 @@ trait PigExpression {
 
   def isNull     = new PigExpression.IsNull(this)
   def isNotNull  = new PigExpression.IsNotNull(this)
+
+  def -->(rhs:PigExpression)                  = DirectTemplateParser.-->(this,rhs)
+
 }
 
 object PigExpression {

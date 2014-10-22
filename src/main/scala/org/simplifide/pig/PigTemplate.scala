@@ -18,7 +18,8 @@ object PigTemplate {
     model match {
 
       case   PigObjects.NULL         => Template.StringToTemplate("null")
-      case x:DirectTemplateParser.TemplateModel => x.template
+      case x:DirectTemplateParser.CaseClose => "CASE " ~ sep(x.clauses.map(C(_))," ") ~" END"
+      case x:DirectTemplateParser.TemplateModel       => x.template
       case x:PigString               => surround(x.name,"'","'")
       case x:PigDouble               => x.value.toString ~ "F"
       case x:PigExpression.Arrow     => C(x.lhs) ~ "#" ~ C(x.rhs)
@@ -46,7 +47,8 @@ object PigTemplate {
       case x:PigObjects.CubeBy      => cube(x)
       case x:PigObjects.CubeInner   => cubeI("CUBE",x)
       case x:PigObjects.RollUp      => cubeI("ROLLUP",x)
-      case x:PigExpression.Binary   => binaryop(x)
+      case x:PigExpression.Binary   => paren(C(x.lhs) ~ " " ~ x.op ~ " " ~ C(x.rhs))
+
       case x:PigObjects.Distinct    => distinct(x)
       case x:PigObjects.FilterBy    => filter(x)
       case x:PigObjects.GroupBy     =>
@@ -54,8 +56,10 @@ object PigTemplate {
       case   PigObjects.Collected   => Template.StringToTemplate("'collected'")
       case   PigObjects.Merge       => Template.StringToTemplate("'merge'")
       case x:PigObjects.Import      => "IMPORT" ~ surround(x.input,"\"")
-      case x:PigObjects.Join        => join(x)
-      case x:PigObjects.JoinBy      => joinBy(x)
+      case x:PigObjects.Join        =>
+        "JOIN " ~ commaList(x.expressions)
+      case x:PigObjects.JoinBy      =>
+        join(x.join) ~ pre("using",x.using) ~ partitionBy(x.partitionBy) ~ par(x.par)
       case x:PigObjects.JoinUsing   => Template.StringToTemplate(x.value)
       case x:PigObjects.SymbolBy    => C(x.lhs) ~ " by " ~ C(x.rhs)
       case x:PigObjects.SymbolByDirection => C(x.symbol) ~ Template.StringToTemplate(x.text)
@@ -121,6 +125,7 @@ object PigTemplate {
       case   NewSchema.Int     => Template.StringToTemplate("int")
       case   NewSchema.String  => Template.StringToTemplate("chararray")
       case   NewSchema.Float   => Template.StringToTemplate("float")
+      case   NewSchema.Map     => Template.StringToTemplate("map[]")
       case x:NewSchema.TupleTrait   => createSchema(x)
       case _                   => Template.StringToTemplate("error")
     }
@@ -152,9 +157,8 @@ object PigTemplate {
     "CROSS " ~ sep(model.inputs.map(C(_)),",") ~ partitionBy(model.partitionBy) ~ par(model.par)
   }
 
-  def binaryop(model:PigExpression.Binary) = {
-    C(model.lhs) ~ " " ~ model.op ~ " " ~ C(model.rhs)
-  }
+
+
 
   def cube(model:PigObjects.CubeBy) = {
     "CUBE " ~ C(model.input) ~ " by " ~ sep(model.inputs.map(C(_)),",") ~ par(model.par)
