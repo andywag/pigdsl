@@ -20,6 +20,9 @@ trait DirectTemplateParser {
   def STAR                               = T("*")
   def AT                                 = T("@")
   def not(expr:PigExpression)            = T(" NOT " ~ paren(C(expr)))
+  def EMPTY                              = T("")
+  def Cast(e:PigExpression, n:String)    = T(s"($n)" ~ C(e))
+  def Call(e:PigExpression, n:String)    = T(n ~ paren(C(e)))
 
   // Case Class Handling
   case class CaseClose(expr:PigExpression, clauses:List[PigExpression] = List()) extends PigModel {
@@ -28,7 +31,6 @@ trait DirectTemplateParser {
   }
   case class CaseOpen(cas:CaseClose,when:PigExpression) {
     def then(expr:PigExpression) = cas.copy(clauses = cas.clauses ::: List(T(" WHEN " ~ C(when) ~ " THEN " ~ C(expr))))
-
   }
 
 
@@ -46,5 +48,6 @@ object DirectTemplateParser extends DirectTemplateParser {
 
   // Expressions
   def -->(lhs:PigExpression, rhs:PigExpression) = T( C(lhs) ~ " .. "  ~ C(rhs))
+  def ~>(lhs:PigExpression, rhs:PigExpression)  = T( C(lhs) ~ "."  ~ C(rhs))
 
 }

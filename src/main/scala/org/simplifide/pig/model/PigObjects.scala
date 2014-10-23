@@ -32,6 +32,7 @@ object PigObjects {
 
     def by(rhs:PigExpression)  = new SymbolBy(this,rhs)
     def iff(rhs:PigExpression) = new IfExpression(this,rhs)
+    def all                    = new PigAll(this)
   }
 
   case class PigSymbol(val symbol:Symbol) extends PigAlias {
@@ -39,6 +40,8 @@ object PigObjects {
   }
 
   case class PigAliasName(override val name:String) extends PigAlias
+
+  case class PigAll(exr:PigExpression) extends PigModel
 
   case class Flatten(val expr:PigExpression) extends PigModel
   case class IsEmpty(val expr:PigExpression) extends PigModel

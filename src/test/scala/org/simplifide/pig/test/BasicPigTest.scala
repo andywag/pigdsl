@@ -29,7 +29,11 @@ abstract class BasicPigTest(val name:String, val desc:String, val expected:Optio
 abstract class BasicPigTest2(val name:String, val desc:String) extends FlatSpec with BaseParser {
 
   val checkItems = new ListBuffer[(String,Option[Int])]()
-  def check(name:String, value:Option[Int]) = {
+
+  def check(symbol:Symbol, value:Option[Int])  {
+    check(symbol.name,value)
+  }
+  def check(name:String, value:Option[Int])  {
     checkItems.append((name,value))
   }
 

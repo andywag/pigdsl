@@ -18,7 +18,8 @@ object PigTemplate {
     model match {
 
       case   PigObjects.NULL         => Template.StringToTemplate("null")
-      case x:DirectTemplateParser.CaseClose => "CASE " ~ sep(x.clauses.map(C(_))," ") ~" END"
+      case x:PigObjects.PigAll       => C(x.exr) ~ " all"
+      case x:DirectTemplateParser.CaseClose => "CASE " ~ C(x.expr) ~ sep(x.clauses.map(C(_))," ") ~" END"
       case x:DirectTemplateParser.TemplateModel       => x.template
       case x:PigString               => surround(x.name,"'","'")
       case x:PigDouble               => x.value.toString ~ "F"

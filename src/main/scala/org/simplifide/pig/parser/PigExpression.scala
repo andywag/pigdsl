@@ -34,6 +34,8 @@ trait PigExpression {
 
   def -->(rhs:PigExpression)                  = DirectTemplateParser.-->(this,rhs)
 
+  def ~>(rhs:PigExpression)                   = DirectTemplateParser.~>(this,rhs)
+
 }
 
 object PigExpression {

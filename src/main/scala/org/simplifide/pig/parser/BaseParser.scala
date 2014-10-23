@@ -60,9 +60,20 @@ trait BaseParser extends DirectTemplateParser  {
   // Operations
   def flatten(expr:PigExpression)  = new PigObjects.Flatten(expr)
   def isEmpty(expr:PigExpression)  = new PigObjects.IsEmpty(expr)
-  def Case(expr:PigExpression)      = new DirectTemplateParser.CaseClose(expr)
-
-
+  def Case(expr:PigExpression)     = new DirectTemplateParser.CaseClose(expr)
+  def Case                         = new DirectTemplateParser.CaseClose(EMPTY)
+  // Casting Operators
+  def bag(expr:PigExpression)      = DirectTemplateParser.Cast(expr,"bag")
+  def tuple(expr:PigExpression)    = DirectTemplateParser.Cast(expr,"tuple")
+  def int(expr:PigExpression)      = DirectTemplateParser.Cast(expr,"int")
+  def long(expr:PigExpression)      = DirectTemplateParser.Cast(expr,"long")
+  def float(expr:PigExpression)    = DirectTemplateParser.Cast(expr,"float")
+  def double(expr:PigExpression)      = DirectTemplateParser.Cast(expr,"double")
+  def chararray(expr:PigExpression)      = DirectTemplateParser.Cast(expr,"chararray")
+  def bytearray(expr:PigExpression)    = DirectTemplateParser.Cast(expr,"bytearray")
+  def boolean(expr:PigExpression)      = DirectTemplateParser.Cast(expr,"boolean")
+  // Standard Functions
+  def sum(expr:PigExpression)       = DirectTemplateParser.Call(expr,"SUM")
 
   def text = items.map(PigTemplate.createTemplate(_)).map(_.create)
   def createText = text.mkString("\n")

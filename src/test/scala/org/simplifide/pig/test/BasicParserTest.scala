@@ -5,6 +5,7 @@ import org.simplifide.pig.model.NewSchema
 import org.simplifide.pig.parser.BaseParser
 
 import org.scalatest._
+import org.simplifide.pig.test.TestParser.TestSchema
 import org.simplifide.pig.test.TestSchemas.ComplexSchema.{t2, t1}
 import org.simplifide.pig.test.TestSchemas.{StudentHolder, Voter, ComplexSchema, Student}
 
@@ -71,6 +72,7 @@ import scala.reflect.io.Path
 
   class ExpressionTest2 extends BasicPigTest2("Expression","") {
     import TestSchemas.Student._
+    import TestSchemas.Integer._
     'a := load(baseLocation + "student.txt") using "PigStorage(' ')" as Student
     'a1 := load(baseLocation + "student.txt") using "PigStorage(' ')" as Student
     'b := foreach ('a) generate(STAR)
@@ -79,9 +81,26 @@ import scala.reflect.io.Path
     check("c",Some(-2031232714))
     'd := join('a by $(0)-->$(1), 'a1 by $(0)-->$(1))
     check("d",Some(995180772))
+    'e := load(baseLocation + "integers.txt") as TestSchemas.Integer
+    val c = Case(f2 % 2) when (0) then ("even") when(1) then ("odd")
+    'f := foreach('e) generate ( c)
+    check('f,Some(-949653407) )
 
-    'e := foreach ('a) generate (Case(age) when (18) then ("here") when (20) then ("there") Else ("nowhere")  )
+    val d = Case when (f2 % 2 === 0) then ("even") when(f2 % 2 === 1) then ("odd")
+    'g := foreach('e) generate (f2, d)
+    check('g,Some(-1619898405) )
+
   }
+
+  class CastTest extends BasicPigTest2("Expression","") {
+    import TestSchemas.Integer._
+
+    'a := load(baseLocation + "integers.txt") as TestSchemas.Integer
+    'b := group('a all)
+    'c := foreach('b) generate ('a,sum('a~>f1))
+     check('c,None)
+
+}
 
   // TODO : Need to Support Map Schema -- With Type
 
