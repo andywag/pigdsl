@@ -45,7 +45,7 @@ abstract class BasicPigTest2(val name:String, val desc:String) extends FlatSpec 
 
   def checkItem(context:PigContext,value:(String,Option[Int])) = {
     val result = context.results(value._1).map(_.hashCode)
-    assert(result == value._2)
+    if (value._2.isDefined) assert(result == value._2) else System.out.println("Result " + result)
   }
 
   name should desc in {

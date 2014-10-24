@@ -21,7 +21,10 @@ trait BaseParser extends DirectTemplateParser  {
   implicit def Int2Pit(value:Int)        = PigInt(value)
 
   val items = new ListBuffer[PigModel]()
-  def ->(model:PigModel) = {items.append(model); model}
+  def ->(model:PigModel) = {
+    items.append(model);
+    model
+  }
   def $(input:Int) = new PigObjects.Dollar(input)
 
   val NULL = PigObjects.NULL
@@ -34,6 +37,7 @@ trait BaseParser extends DirectTemplateParser  {
   def M(values:(PigExpression,PigExpression)*) =
     new PigObjects.MapPig(values.toList.map(x =>new PigExpression.Arrow(x._1,x._2)))
 
+  def assert(expr:PigExpression)   = new PigObjects.Assert(expr)
   def load(value:String)           = new Loader(value)
   def store(expr:PigExpression)    = new PigObjects.Store(expr)
   def dump(expr:PigExpression)     = new PigObjects.Dump(expr)
@@ -74,6 +78,7 @@ trait BaseParser extends DirectTemplateParser  {
   def boolean(expr:PigExpression)      = DirectTemplateParser.Cast(expr,"boolean")
   // Standard Functions
   def sum(expr:PigExpression)       = DirectTemplateParser.Call(expr,"SUM")
+  def count(expr:PigExpression)     = DirectTemplateParser.Call(expr,"COUNT")
 
   def text = items.map(PigTemplate.createTemplate(_)).map(_.create)
   def createText = text.mkString("\n")

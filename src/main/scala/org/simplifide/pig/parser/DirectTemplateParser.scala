@@ -47,6 +47,8 @@ object DirectTemplateParser extends DirectTemplateParser {
   class TemplateModel(val template:Template) extends PigModel
 
   // Expressions
+  def ::>(lhs:PigExpression, rhs:PigExpression)  = T( C(lhs) ~ "::" ~ C(rhs))
+  def #>(lhs:PigExpression, rhs:PigExpression)  = T( C(lhs) ~ "#" ~ C(rhs))
   def -->(lhs:PigExpression, rhs:PigExpression) = T( C(lhs) ~ " .. "  ~ C(rhs))
   def ~>(lhs:PigExpression, rhs:PigExpression)  = T( C(lhs) ~ "."  ~ C(rhs))
 

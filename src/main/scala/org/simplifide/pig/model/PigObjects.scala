@@ -13,6 +13,8 @@ object PigObjects {
 
   case object NULL extends PigModel
 
+  case class Negate(val expression:PigExpression) extends PigModel
+
   case class Tuple(val expressions:List[PigExpression])        extends PigModel
   case class Bag(val expressions:List[Tuple])                  extends PigModel
   case class MapPig(val expressions:List[PigExpression.Arrow]) extends PigModel
@@ -66,6 +68,12 @@ object PigObjects {
   }
 
   case class Assign(val lhs:PigExpression, val rhs:PigExpression) extends PigModel
+
+  case class Assert(val lhs:PigExpression) extends PigModel {
+    def by(expr:PigExpression) = new AssertBy(lhs,expr)
+    def by(expr:PigExpression, message:String) = new AssertBy(lhs,expr,Some(message))
+  }
+  case class AssertBy(lhs:PigExpression, rhs:PigExpression, message:Option[String] = None) extends PigModel
 
   case class Loader(val ident:String,
                     val usingModel:Option[String]=None,
@@ -248,11 +256,12 @@ object PigObjects {
 
   case class ForEachApply(val input:PigExpression, val inputs:List[PigExpression]) extends PigModel
 
-  case class ForEachGenerate(val input:PigExpression, val expr:List[PigExpression], val as:Option[NewSchema]) extends PigModel {
-    def as(schema:NewSchema) = copy(as = Some(schema))
+  case class ForEachGenerate(val input:PigExpression, val expr:List[PigExpression], val as:Option[PigExpression]) extends PigModel {
+    //def as(schema:PigExpression) = copy(as = Some(schema))
   }
 
-
+  case class As(lhs:PigExpression, input:PigExpression) extends PigModel
+  case class Match(lhs:PigExpression, input:PigExpression) extends PigModel
 
 
 

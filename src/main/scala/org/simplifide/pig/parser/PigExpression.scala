@@ -1,6 +1,6 @@
 package org.simplifide.pig.parser
 
-import org.simplifide.pig.model.PigModel
+import org.simplifide.pig.model.{PigObjects, PigModel}
 
 /**
  * Created by andy on 10/12/14.
@@ -32,10 +32,18 @@ trait PigExpression {
   def isNull     = new PigExpression.IsNull(this)
   def isNotNull  = new PigExpression.IsNotNull(this)
 
+  // TODO : Need Test for this Operator (: is going to cause an issue)
+  def ::>(rhs:PigExpression)                  = DirectTemplateParser.::>(this,rhs)
+  // TODO : Need Test for this Operator
+  def #>(rhs:PigExpression)                   = DirectTemplateParser.#>(this,rhs)
   def -->(rhs:PigExpression)                  = DirectTemplateParser.-->(this,rhs)
-
   def ~>(rhs:PigExpression)                   = DirectTemplateParser.~>(this,rhs)
 
+  // Expression Function
+  def as(expr:PigExpression)      = new PigObjects.As(this,expr)
+  def matches(expr:PigExpression) = new PigObjects.Match(this,expr)
+  // Unary Expressions
+  def unary_- = new PigObjects.Negate(this)
 }
 
 object PigExpression {

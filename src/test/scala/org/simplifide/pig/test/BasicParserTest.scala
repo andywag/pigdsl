@@ -25,19 +25,25 @@ import scala.reflect.io.Path
     ->(dump('b))
   }
 
-  class ComplexSchemaTest extends BasicPigTest("ComplexSchema","",Some(-1592404428)) {
+  class ComplexSchemaTest extends BasicPigTest2("ComplexSchema","") {
     import ComplexSchema._
     'a := load(baseLocation + "complex.txt") using "PigStorage(' ')" as ComplexSchema
     'b := foreach('a) generate(t1.t1a, t2.$(0))
-    ->(store('b) into(tempResults) using "PigStorage(' ')")
-    ->(dump('b))
+    check('b,Some(-1592404428))
+    //->(store('b) into(tempResults) using "PigStorage(' ')")
+    //->(dump('b))
+    'c := foreach ('a) generate flatten(ComplexSchema.t1)
+    check('c,Some(1064788788))
   }
 
-  class ExpressionTest extends BasicPigTest("Expression","",Some(640593805)) {
+  class ExpressionTest extends BasicPigTest2("Expression","") {
     'a := load(baseLocation + "integers.txt") using "PigStorage(' ')"
     'b := foreach('a) generate ($(0) + $(2),$(1) + 5)
-    ->(store('b) into(tempResults) using "PigStorage(' ')")
-    ->(dump('b))
+    check('b,Some(640593805))
+    'c := foreach('a) generate(-$(0), $(1))
+    val a = assert('c) by ($(0) > 0,"Data should be greater than 0")
+    ->(a)
+    check('c,Some(523975983))
   }
 
   class GroupTest extends BasicPigTest("Group","",Some(1953912989)) {
@@ -90,17 +96,41 @@ import scala.reflect.io.Path
     'g := foreach('e) generate (f2, d)
     check('g,Some(-1619898405) )
 
+    'h := filter('a) by(Student.name matches ".*a.*")
+    check('h,Some(1651048466))
+
+    'i := foreach('a) generate Student.name
+
+
   }
 
   class CastTest extends BasicPigTest2("Expression","") {
     import TestSchemas.Integer._
 
-    'a := load(baseLocation + "integers.txt") as TestSchemas.Integer
+    'a := load(baseLocation + "integers.txt") using "PigStorage(' ')" as TestSchemas.Integer
     'b := group('a all)
-    'c := foreach('b) generate ('a,sum('a~>f1))
-     check('c,None)
+    'c := foreach('b) generate (sum('a~>f1)) as('total)
+    'd := foreach('a) generate f1/double('c~>'total)
+     check('d,Some(-1791926720))
+
+    'e := foreach ('b) generate (sum('a~>f1) as ('total), count('a) as 'cnt);
+    'f := filter ('a) by (f1 > 0)
+    'g := foreach ('f) generate (f1,f2)
+    check('g,None)
+
+  }
+
+class MiscTest extends BasicPigTest2("Expression","") {
+  import TestSchemas.Integer._
+
+  'a := load(baseLocation + "integers.txt") using "PigStorage(' ')" as TestSchemas.Integer
+  'b := load(baseLocation + "integers.txt") using "PigStorage(' ')" as TestSchemas.Integer
+  'c := cross('a,'b)
+  check('c,Some(1427312791))
 
 }
+
+
 
   // TODO : Need to Support Map Schema -- With Type
 

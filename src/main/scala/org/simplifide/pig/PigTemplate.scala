@@ -17,7 +17,11 @@ object PigTemplate {
   def createTemplate(model:Any):Template = {
     model match {
 
+      case x:PigObjects.Negate       => C("-") ~ C(x.expression)
+      case x:PigObjects.AssertBy     => "ASSERT " ~ C(x.lhs) ~ " BY " ~ C(x.rhs) ~ "," ~ opt(x.message.map(x => C(PigString(x))))
       case   PigObjects.NULL         => Template.StringToTemplate("null")
+      case x:PigObjects.As           => C(x.lhs) ~ " as " ~ C(x.input)
+      case x:PigObjects.Match        => C(x.lhs) ~ " matches " ~ C(x.input)
       case x:PigObjects.PigAll       => C(x.exr) ~ " all"
       case x:DirectTemplateParser.CaseClose => "CASE " ~ C(x.expr) ~ sep(x.clauses.map(C(_))," ") ~" END"
       case x:DirectTemplateParser.TemplateModel       => x.template
