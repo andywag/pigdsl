@@ -20,6 +20,8 @@ trait BaseParser extends DirectTemplateParser  {
   implicit def Symbol2Pig(symbol:Symbol) = PigSymbol(symbol)
   implicit def Int2Pit(value:Int)        = PigInt(value)
 
+  def I(value:Int) = Int2Pit(value)
+
   val items = new ListBuffer[PigModel]()
   def ->(model:PigModel) = {
     items.append(model);
@@ -31,6 +33,7 @@ trait BaseParser extends DirectTemplateParser  {
 
   implicit val parser:BaseParser = this
 
+  def Not(expr:PigExpression)                  = new PigObjects.Not(expr)
 
   def T(values:PigExpression*)                 = new PigObjects.Tuple(values.toList)
   def B(values:PigObjects.Tuple*)              = new PigObjects.Bag(values.toList)
@@ -82,6 +85,8 @@ trait BaseParser extends DirectTemplateParser  {
 
   def text = items.map(PigTemplate.createTemplate(_)).map(_.create)
   def createText = text.mkString("\n")
+
+  def generate(expr:PigExpression) = new PigObjects.Generate(expr)
 
   def runAll = {
     val context = new PigContext()

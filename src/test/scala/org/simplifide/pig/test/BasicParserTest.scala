@@ -2,6 +2,7 @@ package org.simplifide.pig.test
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.simplifide.pig.model.NewSchema
+import org.simplifide.pig.model.PigObjects.Replicated
 import org.simplifide.pig.parser.BaseParser
 
 import org.scalatest._
@@ -127,9 +128,75 @@ class MiscTest extends BasicPigTest2("Expression","") {
   'b := load(baseLocation + "integers.txt") using "PigStorage(' ')" as TestSchemas.Integer
   'c := cross('a,'b)
   check('c,Some(1427312791))
+  'd := cube('a) by (cubeI(f1,f2), rollup(f3))
+  check('d,Some(-318962588))
+  'e := filter('a) by((f1 === 4) And Not (f2 === 3))
+  check('e,Some(-1623584726))
+  'f := foreach('a) generate STAR
+  check('f,Some(252234730))
 
 }
 
+class NestedTest extends BasicPigTest2("Nested","") {
+  import TestSchemas.Student._
+  'a1 := load(baseLocation + "student.txt") using "PigStorage(' ')" as Student
+  'a2 := load(baseLocation + "student.txt") using "PigStorage(' ')" as Student
+
+  'b  := cogroup('a1 by age, 'a2 by age)
+  'c  := foreach ('b) (
+    'd ::= cross('a1, 'a2),
+     generate ('d)
+  )
+  check('c,Some(-863636984))
+  'e  := group('a1 by age)
+  'f  := foreach ('e) (
+    'd ::= foreach ('a1) generate age,
+     generate ('d)
+  )
+  check('f,Some(-2017674200))
+
+  'g := join('a1 by age, 'a2 by age)
+  check('g,Some(865146468))
+
+  'h := join ('a1 by $(0) Left, 'a2 by $(0)) using Replicated
+  check('h,Some(865146468))
+
+  'i := union ('a1, 'a2)
+  check ('i,Some(-673919566))
+
+
+}
+
+class OtherTest extends BasicPigTest2("Nested","") {
+
+  import TestSchemas.Integer._
+
+  'a := load(baseLocation + "integers.txt") using "PigStorage(' ')" as TestSchemas.Integer
+  'b := group('a all)
+  'c := foreach('b) generate(count('a)) as 'sum
+  'd := order ('a) by ($(0) Desc)
+  'e := limit('d,'c~>'sum - 1)
+  check('e,Some(-1493911711))
+
+  // TODO : Fix the Requirements for Parens on Dense
+  'f := (rank('a) by ($(0) Desc, $(1) Asc)).dense
+  check('f,Some(540017304))
+  //'g := sample('f, .5)
+  //check('g,Some(-2067934372))
+
+  ->(split('a) into ('x iff (f1 < 2), 'y Otherwise))
+  check('x,Some(-1709561645))
+  check('y,Some(311033441))
+
+}
+
+class StreamTest extends BasicPigTest2("Nested","") {
+
+  import TestSchemas.Integer._
+
+  // TODO : Need Support for Stream Test
+
+}
 
 
   // TODO : Need to Support Map Schema -- With Type

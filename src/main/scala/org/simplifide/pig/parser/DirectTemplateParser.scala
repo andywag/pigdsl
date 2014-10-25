@@ -18,6 +18,7 @@ trait DirectTemplateParser {
   def concat(expressions:PigExpression*) = T("CONCAT " ~ paren(commaList(expressions.toList)))
   def size(expressions:PigExpression*)   = T("SIZE " ~   paren(commaList(expressions.toList)))
   def STAR                               = T("*")
+  def GROUP                              = T("group")
   def AT                                 = T("@")
   def not(expr:PigExpression)            = T(" NOT " ~ paren(C(expr)))
   def EMPTY                              = T("")

@@ -16,6 +16,22 @@ object PigTemplate {
 
   def createTemplate(model:Any):Template = {
     model match {
+      case x:PigObjects.Left         => C(x.expr) ~ " LEFT " ~ opt(" OUTER ",x.outer)
+      case x:PigObjects.Right         => C(x.expr) ~ " RIGHT " ~ opt(" OUTER ",x.outer)
+      case x:PigObjects.Full         => C(x.expr) ~ " FULL " ~ opt(" OUTER ",x.outer)
+
+      case x:PigObjects.Union       => " UNION " ~ opt( " ONSCHEMA ",x.onSchema) ~ commaList(x.expressions)
+
+      case x:PigObjects.Asc          => C(x.expr) ~ " ASC "
+      case x:PigObjects.Desc         => C(x.expr) ~ " DESC "
+
+      case x:PigObjects.Otherwise    => C(x.expr) ~ " OTHERWISE "
+
+      case x:PigObjects.Outer        => C(x.expr) ~ " OUTER "
+      case x:PigObjects.Generate     => "GENERATE " ~ C(x.expr)
+      case x:PigObjects.Not          => "NOT " ~ C(x.lhs)
+      case x:PigObjects.And          => C(x.lhs) ~ " AND " ~ C(x.rhs)
+      case x:PigObjects.Or           => C(x.lhs) ~ " OR " ~ C(x.rhs)
 
       case x:PigObjects.Negate       => C("-") ~ C(x.expression)
       case x:PigObjects.AssertBy     => "ASSERT " ~ C(x.lhs) ~ " BY " ~ C(x.rhs) ~ "," ~ opt(x.message.map(x => C(PigString(x))))
@@ -41,7 +57,8 @@ object PigTemplate {
       case x:PigObjects.Dollar      => Template.StringToTemplate("$" + s"${x.value}")
       case x:PigObjects.Assign      => C(x.lhs) ~ " = " ~ C(x.rhs)
       case x:PigObjects.Loader      => loader(x)
-      case x:PigObjects.OrderBy     => orderBy(x)
+      case x:PigObjects.OrderBy     =>
+        "ORDER " ~ C(x.input) ~ " by " ~ commaList(x.inputs) ~ par(x.par)//orderBy(x)
       case x:NewSchema.Pair         => Template.StringToTemplate(x.complexName.toString)
       case x:NewSchema.TupleDollar  => Template.StringToTemplate(x.complexName.toString)
       case x:NewSchema.Tuple        => C(x.complexName)
@@ -89,7 +106,7 @@ object PigTemplate {
         "FOREACH " ~ C(x.input) ~ " GENERATE " ~ sep(x.expr.map(C(_)),",") ~ as(x.as)
 
       case x:PigObjects.ForEachApply =>
-        "FOREACH " ~ C(x.input) ~ " {\n" ~ sep(x.inputs.map(C(_)),"\n;") ~ "}\n"
+        "FOREACH " ~ C(x.input) ~ " {\n" ~ sep(x.inputs.map(C(_)),";\n  ") ~ ";\n}\n"
 
       case x:String                 => Template.StringToTemplate(x)
       case x:Template               => x

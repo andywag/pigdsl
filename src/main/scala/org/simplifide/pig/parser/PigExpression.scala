@@ -44,6 +44,24 @@ trait PigExpression {
   def matches(expr:PigExpression) = new PigObjects.Match(this,expr)
   // Unary Expressions
   def unary_- = new PigObjects.Negate(this)
+  // Logical Operations
+  def And(expr:PigExpression)     = new PigObjects.And(this,expr)
+  def Or(expr:PigExpression)      = new PigObjects.Or(this,expr)
+
+  def Left                        = new PigObjects.Left(this)
+  def Right                       = new PigObjects.Right(this)
+  def Full                        = new PigObjects.Full(this)
+
+  def LeftOuter                   = new PigObjects.Left(this,true)
+  def RightOuter                  = new PigObjects.Right(this,true)
+  def FullOuter                   = new PigObjects.Full(this,true)
+
+  def Asc                         = new PigObjects.Asc(this)
+  def Desc                        = new PigObjects.Desc(this)
+
+  def Otherwise                   = new PigObjects.Otherwise(this)
+
+
 }
 
 object PigExpression {

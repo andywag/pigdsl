@@ -38,7 +38,7 @@ object PigExec {
 
         context.get(x.input.create.name) match {
           case Some(y) => {
-            val value = JavaConversions.asScalaIterator(y.getResults).mkString("\n")
+            val value = JavaConversions.asScalaIterator(y.getResults).mkString("\n") + "\n"
             val hash = value.hashCode
             System.out.print(value)
           }

@@ -13,6 +13,10 @@ object PigObjects {
 
   case object NULL extends PigModel
 
+  case class Not(lhs:PigExpression) extends PigModel
+  case class And(lhs:PigExpression, rhs:PigExpression) extends PigModel
+  case class Or(lhs:PigExpression, rhs:PigExpression)  extends PigModel
+
   case class Negate(val expression:PigExpression) extends PigModel
 
   case class Tuple(val expressions:List[PigExpression])        extends PigModel
@@ -31,6 +35,9 @@ object PigObjects {
       val ass = new Assign(this,rhs)
       parser.items.append(ass)
     }
+
+    def ::= (rhs:PigExpression) = new Assign(this,rhs)
+
 
     def by(rhs:PigExpression)  = new SymbolBy(this,rhs)
     def iff(rhs:PigExpression) = new IfExpression(this,rhs)
@@ -263,8 +270,19 @@ object PigObjects {
   case class As(lhs:PigExpression, input:PigExpression) extends PigModel
   case class Match(lhs:PigExpression, input:PigExpression) extends PigModel
 
+  case class Generate(expr:PigExpression) extends PigModel
 
+  // TODO Convert to Single Class
+  case class Left(expr:PigExpression, outer:Boolean = false) extends PigModel
+  case class Right(expr:PigExpression, outer:Boolean = false) extends PigModel
+  case class Full(expr:PigExpression, outer:Boolean = false) extends PigModel
 
+  case class Outer(expr:PigExpression) extends PigModel
+
+  case class Asc(expr:PigExpression) extends PigModel
+  case class Desc(expr:PigExpression) extends PigModel
+
+  case class Otherwise(expr:PigExpression) extends PigModel
 
 
 }
