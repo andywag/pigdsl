@@ -2,7 +2,7 @@ package org.simplifide.pig.test
 
 import org.scalatest._
 import org.simplifide.pig.PigContext
-import org.simplifide.pig.model.PigObjects.{PigAliasName, PigSymbol}
+import org.simplifide.pig.model.PigAlias.PigAliasName
 import org.simplifide.pig.parser.BaseParser
 import org.simplifide.pig.test.TestConstants._
 

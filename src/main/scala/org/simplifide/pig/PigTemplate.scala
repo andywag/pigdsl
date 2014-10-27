@@ -4,11 +4,13 @@ package org.simplifide.pig
  * Created by andy on 10/11/14.
  */
 
-import org.simplifide.pig.model.PigObjects.{PigDouble, PigString}
-import org.simplifide.pig.model.{NewSchema, PigObjects}
+import org.simplifide.pig.model.ExpressionObjects.PigAll
+import org.simplifide.pig.model.{ExpressionObjects => EO, _}
+import ModelBase.{DoubleModel, StringModel}
 import org.simplifide.pig.parser.{DirectTemplateParser, PigExpression}
 import org.simplifide.template.Template
 import Template._
+import org.simplifide.pig.model.{StateObjects => PO}
 
 object PigTemplate {
 
@@ -16,97 +18,109 @@ object PigTemplate {
 
   def createTemplate(model:Any):Template = {
     model match {
-      case x:PigObjects.Left         => C(x.expr) ~ " LEFT " ~ opt(" OUTER ",x.outer)
-      case x:PigObjects.Right         => C(x.expr) ~ " RIGHT " ~ opt(" OUTER ",x.outer)
-      case x:PigObjects.Full         => C(x.expr) ~ " FULL " ~ opt(" OUTER ",x.outer)
 
-      case x:PigObjects.Union       => " UNION " ~ opt( " ONSCHEMA ",x.onSchema) ~ commaList(x.expressions)
 
-      case x:PigObjects.Asc          => C(x.expr) ~ " ASC "
-      case x:PigObjects.Desc         => C(x.expr) ~ " DESC "
 
-      case x:PigObjects.Otherwise    => C(x.expr) ~ " OTHERWISE "
 
-      case x:PigObjects.Outer        => C(x.expr) ~ " OUTER "
-      case x:PigObjects.Generate     => "GENERATE " ~ C(x.expr)
-      case x:PigObjects.Not          => "NOT " ~ C(x.lhs)
-      case x:PigObjects.And          => C(x.lhs) ~ " AND " ~ C(x.rhs)
-      case x:PigObjects.Or           => C(x.lhs) ~ " OR " ~ C(x.rhs)
 
-      case x:PigObjects.Negate       => C("-") ~ C(x.expression)
-      case x:PigObjects.AssertBy     => "ASSERT " ~ C(x.lhs) ~ " BY " ~ C(x.rhs) ~ "," ~ opt(x.message.map(x => C(PigString(x))))
-      case   PigObjects.NULL         => Template.StringToTemplate("null")
-      case x:PigObjects.As           => C(x.lhs) ~ " as " ~ C(x.input)
-      case x:PigObjects.Match        => C(x.lhs) ~ " matches " ~ C(x.input)
-      case x:PigObjects.PigAll       => C(x.exr) ~ " all"
+
+
+
+
       case x:DirectTemplateParser.CaseClose => "CASE " ~ C(x.expr) ~ sep(x.clauses.map(C(_))," ") ~" END"
       case x:DirectTemplateParser.TemplateModel       => x.template
-      case x:PigString               => surround(x.name,"'","'")
-      case x:PigDouble               => x.value.toString ~ "F"
-      case x:PigExpression.Arrow     => C(x.lhs) ~ "#" ~ C(x.rhs)
-      case x:PigObjects.Tuple        => paren(commaList(x.expressions))
-      case x:PigObjects.Bag          => curly(commaList(x.expressions))
-      case x:PigObjects.MapPig       => brack(commaList(x.expressions))
-      case x:PigExpression.IsNull    =>      C(x.expression) ~ " is null "
-      case x:PigExpression.IsNotNull => C(x.expression) ~ " is not null "
-      case x:PigExpression.QuestionGroup => C(x.lhs) ~ " ? " ~ C(x.rhs)
-      case x:PigExpression.QuestionOpen  => C(x.lhs) ~ " : " ~ C(x.tr)
-      case x:PigExpression.QuestionClose => C(x.lhs) ~ " ? " ~ C(x.tr) ~ " : " ~ C(x.fa)
-      case x:PigObjects.Flatten     => "flatten " ~ paren(C(x.expr))
-      case x:PigObjects.IsEmpty     => "IsEmpty"  ~ paren(C(x.expr))
-      case x:PigObjects.Dollar      => Template.StringToTemplate("$" + s"${x.value}")
-      case x:PigObjects.Assign      => C(x.lhs) ~ " = " ~ C(x.rhs)
-      case x:PigObjects.Loader      => loader(x)
-      case x:PigObjects.OrderBy     =>
-        "ORDER " ~ C(x.input) ~ " by " ~ commaList(x.inputs) ~ par(x.par)//orderBy(x)
-      case x:NewSchema.Pair         => Template.StringToTemplate(x.complexName.toString)
-      case x:NewSchema.TupleDollar  => Template.StringToTemplate(x.complexName.toString)
-      case x:NewSchema.Tuple        => C(x.complexName)
-      case x:NewSchema              => schema(x)
-      case x:PigObjects.PigSymbol   => x.symbol.toString().substring(1)
-      case x:PigObjects.PigInt      => x.value.toString
-      case x:PigObjects.Cross       => cross(x)
-      case x:PigObjects.CubeBy      => cube(x)
-      case x:PigObjects.CubeInner   => cubeI("CUBE",x)
-      case x:PigObjects.RollUp      => cubeI("ROLLUP",x)
-      case x:PigExpression.Binary   => paren(C(x.lhs) ~ " " ~ x.op ~ " " ~ C(x.rhs))
+      case x:StringModel               => surround(x.name,"'","'")
+      case x:DoubleModel               => x.value.toString ~ "F"
 
-      case x:PigObjects.Distinct    => distinct(x)
-      case x:PigObjects.FilterBy    => filter(x)
-      case x:PigObjects.GroupBy     =>
-        "GROUP " ~ commaList(x.inputs) ~ pre("USING",x.using) ~ partitionBy(x.partitionBy) ~ par(x.par)
-      case   PigObjects.Collected   => Template.StringToTemplate("'collected'")
-      case   PigObjects.Merge       => Template.StringToTemplate("'merge'")
-      case x:PigObjects.Import      => "IMPORT" ~ surround(x.input,"\"")
-      case x:PigObjects.Join        =>
-        "JOIN " ~ commaList(x.expressions)
-      case x:PigObjects.JoinBy      =>
-        join(x.join) ~ pre("using",x.using) ~ partitionBy(x.partitionBy) ~ par(x.par)
-      case x:PigObjects.JoinUsing   => Template.StringToTemplate(x.value)
-      case x:PigObjects.SymbolBy    => C(x.lhs) ~ " by " ~ C(x.rhs)
-      case x:PigObjects.SymbolByDirection => C(x.symbol) ~ Template.StringToTemplate(x.text)
-      case x:PigObjects.Limit        => "LIMIT " ~ C(x.input) ~ " " ~ C(x.limit)
-      case x:PigObjects.Sample       => "SAMPLE " ~ C(x.input) ~ " " ~ C(x.limit)
-      case x:PigObjects.IfExpression => C(x.lhs) ~ " IF " ~ C(x.rhs)
-      case x:PigObjects.Rank        =>
-        "RANK " ~ C(x.input) ~ opt(" by " ~ sep(x.by.map(C(_)),","),x.by.size > 0)  ~ opt(" dense ",x.denseO)
-      case x:PigObjects.SplitInto   =>
-        "SPLIT " ~ C(x.input) ~ " INTO "  ~ sep(x.expressions.map(C(_)),",")
-      case x:PigObjects.StreamThrough =>
-        "STREAM " ~ sep(x.stream.inputs.map(C(_)),",") ~ " THROUGH " ~ C(x.through) ~ as(x.schema)
+      // Constants
+      case   StateObjects.NULL            => Template.StringToTemplate(" NULL ")
+      // Unary Expressions
+      case x:EO.Negate                  => C("-") ~ C(x.lhs)
+      case x:EO.Not                     => "NOT " ~ C(x.lhs)
+      // PostFix Operations
+      case x:PigAll                     => C(x.expr) ~ " ALL"
+      // Special Unary Expressions
+      case x:EO.Left         => C(x.expr) ~ " LEFT "  ~ opt(" OUTER ",x.outer)
+      case x:EO.Right        => C(x.expr) ~ " RIGHT " ~ opt(" OUTER ",x.outer)
+      case x:EO.Full         => C(x.expr) ~ " FULL "  ~ opt(" OUTER ",x.outer)
+      case x:EO.Asc          => C(x.expr) ~ " ASC "
+      case x:EO.Desc         => C(x.expr) ~ " DESC "
+      // TODO : Move Othewise somewhere else
+      case x:EO.IfExpression => C(x.lhs) ~ " IF " ~ C(x.rhs)
+      case x:EO.Otherwise    => C(x.expr) ~ " OTHERWISE "
+      // Binary Expressions
+      case x:EO.Binary                  => paren(C(x.lhs) ~ " " ~ x.op ~ " " ~ C(x.rhs))
+      case x:EO.Arrow                   => C(x.lhs) ~ "#" ~ C(x.rhs)
+      case x:EO.IsNull                  => C(x.lhs) ~ " IS NULL "
+      case x:EO.IsNotNull               => C(x.lhs) ~ " IS NOT NULL "
+      case x:EO.QuestionGroup           => C(x.lhs) ~ " ? " ~ C(x.rhs)
+      case x:EO.QuestionOpen            => C(x.lhs) ~ " : " ~ C(x.tr)
+      case x:EO.QuestionClose           => C(x.lhs) ~ " ? " ~ C(x.tr) ~ " : " ~ C(x.fa)
+      case x:EO.As                      => C(x.lhs) ~ " AS " ~ C(x.input)
+      case x:EO.Match                   => C(x.lhs) ~ " MATCHES " ~ C(x.input)
+      case x:EO.And                     => C(x.lhs) ~ " AND " ~ C(x.rhs)
+      case x:EO.Or                      => C(x.lhs) ~ " OR " ~ C(x.rhs)
+      // Schema Objects
+      case x:SchemaObjects.Tuple        => paren(commaList(x.expressions))
+      case x:SchemaObjects.Bag          => curly(commaList(x.expressions))
+      case x:SchemaObjects.MapPig       => brack(commaList(x.expressions))
+      // TODO : Needs Cleanup of these Expressions
+      case x:NewSchema.Pair             => Template.StringToTemplate(x.complexName.toString)
+      case x:NewSchema.TupleDollar      => Template.StringToTemplate(x.complexName.toString)
+      case x:NewSchema.Tuple            => C(x.complexName)
+      case x:NewSchema                  => schema(x)
+      // Operations
+      case x:PO.AssertBy                => "ASSERT " ~ C(x.lhs) ~ " BY " ~ C(x.rhs) ~ "," ~ opt(x.message.map(x => C(StringModel(x))))
+      case x:PO.Cross                   => "CROSS " ~ sep(x.inputs.map(C(_)),",") ~ partitionBy(x.partitionBy) ~ par(x.par)
+      case x:PO.CubeBy                  => "CUBE " ~ C(x.input) ~ " by " ~ sep(x.inputs.map(C(_)),",") ~ par(x.par)
+        case x:PO.CubeInner             => cubeI("CUBE",x)
+        case x:PO.RollUp                => cubeI("ROLLUP",x)
+      case x:PO.Distinct                => "DISTINCT " ~ C(x.input) ~ partitionBy(x.partitionBy) ~ par(x.par)
+      case x:PO.FilterBy                => "FILTER " ~ C(x.input) ~ " by " ~ C(x.byTerm)
+      case x:PO.ForEachGenerate         => "FOREACH " ~ C(x.input) ~ " GENERATE " ~ commaList(x.expr) ~ as(x.as)
+      case x:PO.ForEachApply            => "FOREACH " ~ C(x.input) ~ " {\n" ~ sep(x.inputs.map(C(_)),";\n  ") ~ ";\n}\n"
+      case x:PO.Generate                => "GENERATE " ~ C(x.expr)
+      case x:PO.GroupBy                 => "GROUP " ~ commaList(x.inputs) ~ pre("USING",x.using) ~ partitionBy(x.partitionBy) ~ par(x.par)
+      case x:PO.Join                    => "JOIN " ~ commaList(x.expressions)
+      case x:PO.JoinBy                  =>  join(x.join) ~ pre("USING",x.using) ~ partitionBy(x.partitionBy) ~ par(x.par)
+        case x:PO.JoinUsing             =>  Template.StringToTemplate(x.value)
+      case x:PO.Limit                   => "LIMIT " ~ C(x.input) ~ " " ~ C(x.limit)
+      case x:PO.Loader                  => "LOAD " ~ surround(x.ident,"'","' ") ~ use(x.usingModel) ~ as(x.schema)
+      case x:PO.MapReduceStoreUsing     => "MAPREDUCE " ~ C(x.jar) ~ " STORE " ~ C(x.store) ~ " INTO " ~ C(x.into) ~ " USING " ~ C(x.usingStore)
+      case x:PO.MapReduceLoadUsing      => C(x.store) ~ " LOAD " ~ C(x.location) ~ " USING " ~ C(x.using)
+      case x:PO.MapReduceSchema         => C(x.using) ~ as(Some(x.schema))
+      case x:PO.OrderBy                 => "ORDER " ~ C(x.input) ~ " by " ~ commaList(x.inputs) ~ par(x.par)
+      case x:PO.Rank                    => "RANK " ~ C(x.input) ~ opt(" BY " ~ sep(x.by.map(C(_)),","),x.by.size > 0)  ~ opt(" dense ",x.denseO)
+      case x:PO.Sample                  => "SAMPLE " ~ C(x.input) ~ " " ~ C(x.limit)
+      case x:PO.SplitInto               => "SPLIT " ~ C(x.input) ~ " INTO "  ~ sep(x.expressions.map(C(_)),",")
+      case x:PO.StreamThrough           => "STREAM " ~ sep(x.stream.inputs.map(C(_)),",") ~ " THROUGH " ~ C(x.through) ~ as(x.schema)
+      case x:PO.Union                   => " UNION " ~ opt( " ONSCHEMA ",x.onSchema) ~ commaList(x.expressions)
+      // BuiltIn Objects
+      case x:BuiltInObjects.Base        => x.fName ~ paren(C(x.expr))
 
-      case x:PigObjects.MapReduceStoreUsing =>
-        "MAPREDUCE " ~ C(x.jar) ~ " STORE " ~ C(x.store) ~ " INTO " ~ C(x.into) ~ " USING " ~ C(x.usingStore)
-      case x:PigObjects.MapReduceLoadUsing =>
-        C(x.store) ~ " LOAD " ~ C(x.location) ~ " USING " ~ C(x.using)
-      case x:PigObjects.MapReduceSchema =>
-        C(x.using) ~ as(Some(x.schema))
+      case x:EO.Flatten                 => " FLATTEN " ~ paren(C(x.expr))
+      case x:PigAlias.Dollar            => Template.StringToTemplate("$" + s"${x.value}")
 
-      case x:PigObjects.ForEachGenerate =>
-        "FOREACH " ~ C(x.input) ~ " GENERATE " ~ sep(x.expr.map(C(_)),",") ~ as(x.as)
+      case x:PigAlias.Assign      => C(x.lhs) ~ " = " ~ C(x.rhs)
+      case x:PigAlias.PigSymbol   => x.symbol.toString().substring(1)
+      case x:PigAlias.SymbolBy    => C(x.lhs) ~ " by " ~ C(x.rhs)
+      case x:PigAlias.SymbolByDirection => C(x.symbol) ~ Template.StringToTemplate(x.text)
 
-      case x:PigObjects.ForEachApply =>
-        "FOREACH " ~ C(x.input) ~ " {\n" ~ sep(x.inputs.map(C(_)),";\n  ") ~ ";\n}\n"
+      case x:ModelBase.IntModel      => x.value.toString
+
+
+
+
+      case   StateObjects.Collected   => Template.StringToTemplate("'collected'")
+      case   StateObjects.Merge       => Template.StringToTemplate("'merge'")
+      case x:StateObjects.Import      => "IMPORT" ~ surround(x.input,"\"")
+
+
+
+
+
+
+
 
       case x:String                 => Template.StringToTemplate(x)
       case x:Template               => x
@@ -154,7 +168,7 @@ object PigTemplate {
   }
 
 
-  def orderBy(orderBy:PigObjects.OrderBy) = {
+  def orderBy(orderBy:StateObjects.OrderBy) = {
     def by(input:PigExpression) = new Template.StringValue(input.create.name)
     "order " ~ C(orderBy.input) ~ " by " ~ sep(orderBy.inputs.map(by(_)),",") ~ par(orderBy.par)
   }
@@ -167,45 +181,45 @@ object PigTemplate {
 
 
 
-  def loader(model:PigObjects.Loader) =
+  def loader(model:StateObjects.Loader) =
     "LOAD " ~ surround(model.ident,"'","' ") ~ use(model.usingModel) ~ as(model.schema)
 
 
-  def store(model:PigObjects.Store) = {
+  def store(model:StateObjects.Store) = {
     "STORE " ~ C(model.input) ~ "INTO " ~ surround(model.intoModel.get,"'","' ") ~ use(model.usingModel)
   }
 
-  def cross(model:PigObjects.Cross) = {
+  def cross(model:StateObjects.Cross) = {
     "CROSS " ~ sep(model.inputs.map(C(_)),",") ~ partitionBy(model.partitionBy) ~ par(model.par)
   }
 
 
 
 
-  def cube(model:PigObjects.CubeBy) = {
+  def cube(model:StateObjects.CubeBy) = {
     "CUBE " ~ C(model.input) ~ " by " ~ sep(model.inputs.map(C(_)),",") ~ par(model.par)
   }
 
-  def cubeI(name:String,model:PigObjects.CubeInput) = {
+  def cubeI(name:String,model:StateObjects.CubeInput) = {
     val temp = Template.L(model.input.map(C(_)))
     name ~ " " ~ surround(sep(temp,","),"(",")")
   }
 
-  def distinct(model:PigObjects.Distinct) = {
+  def distinct(model:StateObjects.Distinct) = {
     "DISTINCT " ~ C(model.input) ~ partitionBy(model.partitionBy) ~ par(model.par)
   }
 
-  def filter(model:PigObjects.FilterBy) = {
+  def filter(model:StateObjects.FilterBy) = {
     "FILTER " ~ C(model.input) ~ " by " ~ C(model.byTerm)
   }
 
-  def group(model:PigObjects.GroupBy) = {
+  def group(model:StateObjects.GroupBy) = {
 
     "GROUP " ~ sep(model.inputs.map(C(_)),",") ~ pre("using",model.using) ~ partitionBy(model.partitionBy) ~ par(model.par)
   }
 
-  def join(model:PigObjects.Join)     = "JOIN " ~ sep(model.expressions.map(C(_)),",")
-  def joinBy(model:PigObjects.JoinBy) = {
+  def join(model:StateObjects.Join)     = "JOIN " ~ sep(model.expressions.map(C(_)),",")
+  def joinBy(model:StateObjects.JoinBy) = {
     join(model.join) ~ pre("using",model.using) ~ partitionBy(model.partitionBy) ~ par(model.par)
   }
 

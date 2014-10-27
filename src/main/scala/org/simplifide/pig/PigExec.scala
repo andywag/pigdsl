@@ -2,7 +2,8 @@ package org.simplifide.pig
 
 import org.apache.log4j.PropertyConfigurator
 import org.apache.pig.{ExecType, PigServer}
-import org.simplifide.pig.model.{PigObjects, PigModel}
+import org.simplifide.parser.model.TopModel
+import org.simplifide.pig.model.{StateObjects, PigModel}
 
 import scala.collection.JavaConversions
 
@@ -23,9 +24,9 @@ object PigExec {
   }
 
 
-  def runModel(model:PigModel, context:PigContext) = {
+  def runModel(model:TopModel, context:PigContext) = {
     model match {
-      case x:PigObjects.Store => { // Store Case - Should Be Moved to Function
+      case x:StateObjects.Store => { // Store Case - Should Be Moved to Function
         System.out.println("Storing " + x.input.create.name + " into " + x.intoModel.get)
         val name = x.input.create.name
         val result = x.usingModel match {
@@ -34,7 +35,7 @@ object PigExec {
         }
         context.context.put(name,result)
       }
-      case x:PigObjects.Dump => {
+      case x:StateObjects.Dump => {
 
         context.get(x.input.create.name) match {
           case Some(y) => {
@@ -45,7 +46,7 @@ object PigExec {
           case _       => s"Error : Can't Find ${x.input.create.name}"
         }
       }
-      case x:PigObjects.ForEachApply => runCommand(PigTemplate.createTemplate(model).create,"")
+      case x:StateObjects.ForEachApply => runCommand(PigTemplate.createTemplate(model).create,"")
       case _                         => runCommand(PigTemplate.createTemplate(model).create,";")
     }
   }

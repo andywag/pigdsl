@@ -2,7 +2,7 @@ package org.simplifide.pig.test
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.simplifide.pig.model.NewSchema
-import org.simplifide.pig.model.PigObjects.Replicated
+import org.simplifide.pig.model.StateObjects.Replicated
 import org.simplifide.pig.parser.BaseParser
 
 import org.scalatest._
@@ -84,7 +84,7 @@ import scala.reflect.io.Path
     'a1 := load(baseLocation + "student.txt") using "PigStorage(' ')" as Student
     'b := foreach ('a) generate(STAR)
     check("b",Some(-1969659138))
-    'c := filter ('a) by not(Student.name === "Mary")
+    'c := filter ('a) by Not(Student.name === "Mary")
     check("c",Some(-2031232714))
     'd := join('a by $(0)-->$(1), 'a1 by $(0)-->$(1))
     check("d",Some(995180772))
