@@ -15,8 +15,8 @@ trait DirectTemplateParser {
 
   def T(template:Template) = new TemplateModel(template)
 
-  def concat(expressions:PigExpression*) = T("CONCAT " ~ paren(commaList(expressions.toList)))
-  def size(expressions:PigExpression*)   = T("SIZE " ~   paren(commaList(expressions.toList)))
+  //def concat(expressions:PigExpression*) = T("CONCAT " ~ paren(commaList(expressions.toList)))
+  //def size(expressions:PigExpression*)   = T("SIZE " ~   paren(commaList(expressions.toList)))
 
 
   //def not(expr:PigExpression)            = T(" NOT " ~ paren(C(expr)))

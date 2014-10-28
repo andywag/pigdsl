@@ -1,6 +1,6 @@
 package org.simplifide.pig.parser
 
-import org.simplifide.pig.model.ModelBase.{IntModel, StringModel, DoubleModel}
+import org.simplifide.pig.model.ModelBase.{CharModel, IntModel, StringModel, DoubleModel}
 import org.simplifide.pig.model.PigAlias.PigSymbol
 
 /**
@@ -11,6 +11,7 @@ trait BasicTypeParser {
   implicit def StringToModel(value:String)  = StringModel(value)
   implicit def SymbolToModel(symbol:Symbol) = PigSymbol(symbol)
   implicit def IntToModel(value:Int)        = IntModel(value)
+  implicit def CharToModel(value:Char)      = CharModel(value)
 
   def I(value:Int)     = IntToModel(value)
 

@@ -10,5 +10,6 @@ object ModelBase {
   case class IntModel(value:Int)                   extends PigModel {
     override val name = value.toString
   }
+  case class CharModel(value:Char)                 extends PigModel
 
 }

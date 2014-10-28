@@ -29,9 +29,11 @@ object PigTemplate {
 
       case x:DirectTemplateParser.CaseClose => "CASE " ~ C(x.expr) ~ sep(x.clauses.map(C(_))," ") ~" END"
       case x:DirectTemplateParser.TemplateModel       => x.template
+      // Basic Types
       case x:StringModel               => surround(x.name,"'","'")
       case x:DoubleModel               => x.value.toString ~ "F"
-
+      case x:ModelBase.CharModel     => "'" ~ x.value.toString ~ "'"
+      case x:ModelBase.IntModel      => x.value.toString
       // Constants
       case   StateObjects.NULL            => Template.StringToTemplate(" NULL ")
       // Unary Expressions
@@ -96,7 +98,16 @@ object PigTemplate {
       case x:PO.StreamThrough           => "STREAM " ~ sep(x.stream.inputs.map(C(_)),",") ~ " THROUGH " ~ C(x.through) ~ as(x.schema)
       case x:PO.Union                   => " UNION " ~ opt( " ONSCHEMA ",x.onSchema) ~ commaList(x.expressions)
       // BuiltIn Objects
-      case x:BuiltInObjects.Base        => x.fName ~ paren(C(x.expr))
+      case x:BuiltInObjects.BaseTrait   => x.fName ~ paren(commaList(x.expressions))
+
+      case x:BuiltInObjects.BagToString => "BagToString " ~ paren(C(x.expr) ~ opt(x.delimiter.map(y => "," ~ C(y))))
+      case x:BuiltInObjects.Concat      => "CONCAT " ~ paren(commaList(x.expressions))
+      case x:BuiltInObjects.Diff        => "DIFF " ~ paren(C(x.e1) ~ "," ~ C(x.e2))
+      case x:BuiltInObjects.Subtract    => "SUBTRACT " ~ paren(C(x.e1) ~ "," ~ C(x.e2))
+      case x:BuiltInObjects.Tokenize    => "TOKENIZE " ~ paren(C(x.expr) ~ opt(x.delimiter.map(y => "," ~ C(y))))
+      // Built In Math Objects
+      case BuiltInObjects.Random        => "RANDOM()"
+      case x:BuiltInObjects.RoundTo     => "RoundTo" ~ paren(C(x.e1) ~ "," ~ C(x.e2) ~ opt(x.e3.map(y => "," ~ C(y))))
 
       case x:EO.Flatten                 => " FLATTEN " ~ paren(C(x.expr))
       case x:PigAlias.Dollar            => Template.StringToTemplate("$" + s"${x.value}")
@@ -106,7 +117,7 @@ object PigTemplate {
       case x:PigAlias.SymbolBy    => C(x.lhs) ~ " by " ~ C(x.rhs)
       case x:PigAlias.SymbolByDirection => C(x.symbol) ~ Template.StringToTemplate(x.text)
 
-      case x:ModelBase.IntModel      => x.value.toString
+
 
 
 
