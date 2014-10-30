@@ -1,5 +1,6 @@
 package org.simplifide.pig.test
 
+import org.apache.pig.builtin.PigStorage
 import org.scalatest.{FlatSpec, Matchers}
 import org.simplifide.pig.model.NewSchema
 import org.simplifide.pig.model.StateObjects.Replicated
@@ -187,6 +188,20 @@ class OtherTest extends BasicPigTest2("Nested","") {
   ->(split('a) into ('x iff (f1 < 2), 'y Otherwise))
   check('x,Some(-1709561645))
   check('y,Some(311033441))
+
+}
+
+class BuiltInTest extends BasicPigTest2("BuiltIn","") {
+  import TestSchemas.Student._
+  'a := load(baseLocation + "student2.txt") using "PigStorage(' ')" as Student
+  'b := group('a by Student.name)
+  'c := foreach ('b) generate('a~>Student.name, avg('a~>Student.gpa))
+  check('c,None)
+  'd := foreach('a) generate concat(Student.name, '_', Student.name)
+  check('d,None)
+  'e := q("foreach a generate UPPER(name)")
+  check('e,None)
+
 
 }
 

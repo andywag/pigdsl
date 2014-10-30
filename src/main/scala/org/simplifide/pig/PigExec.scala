@@ -1,9 +1,10 @@
 package org.simplifide.pig
 
 import org.apache.log4j.PropertyConfigurator
-import org.apache.pig.{ExecType, PigServer}
+import org.apache.pig.{EvalFunc, FuncSpec, ExecType, PigServer}
 import org.simplifide.parser.model.TopModel
 import org.simplifide.pig.model.{StateObjects, PigModel}
+import org.simplifide.pig.user.TestFunction
 
 import scala.collection.JavaConversions
 
@@ -14,13 +15,14 @@ object PigExec {
 
   PropertyConfigurator.configure("/home/andy/IdeaProjects/pig/log4j.properties")
   val server = new PigServer(ExecType.LOCAL)
-
+  server.registerFunction("UPPER",new TestFunction().create)
 
 
 
   def runCommand(command:String, postfix:String) = {
     System.out.println(command)
     server.registerQuery(command + postfix)
+
   }
 
 

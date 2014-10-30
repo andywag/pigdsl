@@ -35,4 +35,7 @@ trait StatementParser {
   def stream(expr:PigExpression*)  = new StateObjects.Stream(expr.toList)
   def union                        = StateObjects.UnionBase
   // TODO : UDF Needs Definition
+
+  def q(value:String)              = new StateObjects.Direct(value)
+
 }

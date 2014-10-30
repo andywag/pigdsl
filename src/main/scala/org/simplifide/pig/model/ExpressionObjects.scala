@@ -12,6 +12,8 @@ object ExpressionObjects {
   case class Not(lhs:PigExpression) extends PigModel
   // All Binary Operators
   case class Binary(op:String, lhs:PigExpression, rhs:PigExpression) extends PigModel
+  case class BinaryNoSpace(op:String, lhs:PigExpression, rhs:PigExpression) extends PigModel
+
   case class And(lhs:PigExpression, rhs:PigExpression) extends PigModel
   case class Or(lhs:PigExpression, rhs:PigExpression)  extends PigModel
   //

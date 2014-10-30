@@ -38,9 +38,9 @@ trait PigExpression extends Expression {
   // TODO : Need Test for this Operator (: is going to cause an issue)
   def ::>(rhs:PigExpression)                  = Binary("::",this,rhs)
   // TODO : Need Test for this Operator
-  def #>(rhs:PigExpression)                   = Binary("#",this,rhs)
-  def -->(rhs:PigExpression)                  = Binary(" .. ",this,rhs)
-  def ~>(rhs:PigExpression)                   = Binary(".",this,rhs)
+  def #>(rhs:PigExpression)                   = BinaryNoSpace("#",this,rhs)
+  def -->(rhs:PigExpression)                  = BinaryNoSpace(" .. ",this,rhs)
+  def ~>(rhs:PigExpression)                   = BinaryNoSpace(".",this,rhs)
 
   // Expression Function
   def as(expr:PigExpression)                  = As(this,expr)

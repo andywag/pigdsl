@@ -9,18 +9,18 @@ object BuiltInObjects {
 
   type E = PigExpression
 
-  trait BaseTrait {
+  trait BaseTrait extends PigModel{
     val fName:String
     val expressions:List[E]
   }
 
-  class Base(val fName:String, val expr:PigExpression) extends PigModel {
+  class Base(val fName:String, val expr:PigExpression) extends BaseTrait {
     val expressions = List(expr)
   }
-  class Base2(val fName:String, val e1:E, val e2:E) extends PigModel {
+  class Base2(val fName:String, val e1:E, val e2:E) extends BaseTrait {
     val expressions = List(e1,e2)
   }
-  class Base3(val fName:String, val e1:E, val e2:E, val e3:E) extends PigModel {
+  class Base3(val fName:String, val e1:E, val e2:E, val e3:E) extends BaseTrait {
     val expressions = List(e1,e2,e3)
   }
 

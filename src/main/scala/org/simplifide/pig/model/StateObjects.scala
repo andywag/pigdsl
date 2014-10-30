@@ -223,6 +223,8 @@ object StateObjects {
   case class Generate(expr:PigExpression) extends PigModel
 
 
+  case class Direct(value:String) extends PigModel
+
 
 
 }

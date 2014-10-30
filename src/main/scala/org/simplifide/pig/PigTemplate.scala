@@ -20,13 +20,7 @@ object PigTemplate {
     model match {
 
 
-
-
-
-
-
-
-
+      case x:StateObjects.Direct       => x.value
       case x:DirectTemplateParser.CaseClose => "CASE " ~ C(x.expr) ~ sep(x.clauses.map(C(_))," ") ~" END"
       case x:DirectTemplateParser.TemplateModel       => x.template
       // Basic Types
@@ -52,6 +46,7 @@ object PigTemplate {
       case x:EO.Otherwise    => C(x.expr) ~ " OTHERWISE "
       // Binary Expressions
       case x:EO.Binary                  => paren(C(x.lhs) ~ " " ~ x.op ~ " " ~ C(x.rhs))
+      case x:EO.BinaryNoSpace           => paren(C(x.lhs) ~ x.op ~ C(x.rhs))
       case x:EO.Arrow                   => C(x.lhs) ~ "#" ~ C(x.rhs)
       case x:EO.IsNull                  => C(x.lhs) ~ " IS NULL "
       case x:EO.IsNotNull               => C(x.lhs) ~ " IS NOT NULL "
