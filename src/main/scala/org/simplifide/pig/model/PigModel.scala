@@ -2,7 +2,7 @@ package org.simplifide.pig.model
 
 import org.simplifide.parser.model.TopModel
 import org.simplifide.pig.parser.PigExpression
-import org.simplifide.pig.{PigExec, PigTemplate, PigResult}
+import org.simplifide.pig.{PigTemplate, PigResult}
 
 
 /**

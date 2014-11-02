@@ -1,10 +1,13 @@
-package org.simplifide.pig
+package org.simplifide.pig.core
 
 import org.apache.log4j.PropertyConfigurator
-import org.apache.pig.{EvalFunc, FuncSpec, ExecType, PigServer}
+import org.apache.pig.impl.PigContext
+import org.apache.pig.impl.util.PropertiesUtil
+import org.apache.pig.{ExecType, PigServer}
 import org.simplifide.parser.model.TopModel
-import org.simplifide.pig.model.{StateObjects, PigModel}
-import org.simplifide.pig.user.TestFunction
+import org.simplifide.pig.PigTemplate
+import org.simplifide.pig.model.StateObjects
+import org.simplifide.pig.user.{UserDefined}
 
 import scala.collection.JavaConversions
 
@@ -14,19 +17,22 @@ import scala.collection.JavaConversions
 object PigExec {
 
   PropertyConfigurator.configure("/home/andy/IdeaProjects/pig/log4j.properties")
-  val server = new PigServer(ExecType.LOCAL)
-  server.registerFunction("UPPER",new TestFunction().create)
+  val properties = PropertiesUtil.loadDefaultProperties
+  val context = new PigLocalContext(ExecType.LOCAL, properties)
 
+  val server = new PigServer(context)
 
 
   def runCommand(command:String, postfix:String) = {
     System.out.println(command)
     server.registerQuery(command + postfix)
-
   }
 
+  def registerFunction(user:UserDefined) = {
+    server.registerFunction(user.functionName,user.createFunc)
+  }
 
-  def runModel(model:TopModel, context:PigContext) = {
+  def runModel(model:TopModel, context:PigRunContext) = {
     model match {
       case x:StateObjects.Store => { // Store Case - Should Be Moved to Function
         System.out.println("Storing " + x.input.create.name + " into " + x.intoModel.get)
@@ -53,8 +59,6 @@ object PigExec {
     }
   }
 
-  //server.registerQuery(s"a = load '$testFile' using PigStorage() as (b:int,c:int,d:int);")
-  //server.dumpSchema("a")
-  //server.explain("a",System.out)
+
 
 }

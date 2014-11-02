@@ -1,7 +1,7 @@
 package org.simplifide.pig.test
 
 import org.scalatest._
-import org.simplifide.pig.PigContext
+import org.simplifide.pig.core.PigRunContext
 import org.simplifide.pig.model.PigAlias.PigAliasName
 import org.simplifide.pig.parser.BaseParser
 import org.simplifide.pig.test.TestConstants._
@@ -43,7 +43,7 @@ abstract class BasicPigTest2(val name:String, val desc:String) extends FlatSpec 
     ->(dump(PigAliasName(value._1)))
   }
 
-  def checkItem(context:PigContext,value:(String,Option[Int])) = {
+  def checkItem(context:PigRunContext,value:(String,Option[Int])) = {
     val result = context.results(value._1).map(_.hashCode)
     if (value._2.isDefined) assert(result == value._2) else System.out.println("Result " + result)
   }

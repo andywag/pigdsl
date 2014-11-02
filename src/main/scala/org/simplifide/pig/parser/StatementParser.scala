@@ -34,8 +34,10 @@ trait StatementParser {
   // TODO : Stream Needs Testing
   def stream(expr:PigExpression*)  = new StateObjects.Stream(expr.toList)
   def union                        = StateObjects.UnionBase
-  // TODO : UDF Needs Definition
 
+  // TODO : UDF Needs Definition
   def q(value:String)              = new StateObjects.Direct(value)
+  def generate(expr:PigExpression) = new StateObjects.Generate(expr)
+
 
 }

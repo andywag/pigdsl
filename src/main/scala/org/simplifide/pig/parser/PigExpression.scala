@@ -70,5 +70,4 @@ trait PigExpression extends Expression {
 object PigExpression {
 
 
-
 }

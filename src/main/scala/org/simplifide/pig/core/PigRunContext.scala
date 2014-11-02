@@ -1,4 +1,4 @@
-package org.simplifide.pig
+package org.simplifide.pig.core
 
 import org.apache.pig.backend.executionengine.ExecJob
 
@@ -7,7 +7,7 @@ import scala.collection.{JavaConversions, mutable}
 /**
  * Created by andy on 10/14/14.
  */
-class PigContext {
+class PigRunContext {
 
   val context = new mutable.HashMap[String,ExecJob]()
   def get(name:String) = context.get(name)

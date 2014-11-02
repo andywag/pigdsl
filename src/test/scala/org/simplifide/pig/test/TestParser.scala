@@ -5,7 +5,7 @@ import org.apache.pig.backend.executionengine.ExecJob
 import org.apache.pig.builtin.PigStorage
 import org.apache.pig.{PigRunner, ExecType, PigServer}
 import org.apache.pig.scripting.Pig
-import org.simplifide.pig.PigExec
+import org.simplifide.pig.core.PigExec
 import org.simplifide.pig.model.{Schema => S, NewSchema}
 import org.simplifide.pig.parser.BaseParser
 import org.simplifide.pig.test.TestParser.TestSchema

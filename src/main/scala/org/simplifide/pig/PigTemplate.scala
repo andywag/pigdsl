@@ -8,6 +8,7 @@ import org.simplifide.pig.model.ExpressionObjects.PigAll
 import org.simplifide.pig.model.{ExpressionObjects => EO, _}
 import ModelBase.{DoubleModel, StringModel}
 import org.simplifide.pig.parser.{DirectTemplateParser, PigExpression}
+import org.simplifide.pig.user.UserDefined
 import org.simplifide.template.Template
 import Template._
 import org.simplifide.pig.model.{StateObjects => PO}
@@ -18,7 +19,8 @@ object PigTemplate {
 
   def createTemplate(model:Any):Template = {
     model match {
-
+      // User Defined Methods
+      case x:UserDefined.UserDefinedFunction => x.functionName ~ paren(commaList(x.expressions))
 
       case x:StateObjects.Direct       => x.value
       case x:DirectTemplateParser.CaseClose => "CASE " ~ C(x.expr) ~ sep(x.clauses.map(C(_))," ") ~" END"
@@ -92,6 +94,7 @@ object PigTemplate {
       case x:PO.SplitInto               => "SPLIT " ~ C(x.input) ~ " INTO "  ~ sep(x.expressions.map(C(_)),",")
       case x:PO.StreamThrough           => "STREAM " ~ sep(x.stream.inputs.map(C(_)),",") ~ " THROUGH " ~ C(x.through) ~ as(x.schema)
       case x:PO.Union                   => " UNION " ~ opt( " ONSCHEMA ",x.onSchema) ~ commaList(x.expressions)
+      case x:PO.RegisterJar             => "REGISTER " ~ C(x.value)
       // BuiltIn Objects
       case x:BuiltInObjects.BaseTrait   => x.fName ~ paren(commaList(x.expressions))
 

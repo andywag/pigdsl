@@ -199,18 +199,25 @@ class BuiltInTest extends BasicPigTest2("BuiltIn","") {
   check('c,None)
   'd := foreach('a) generate concat(Student.name, '_', Student.name)
   check('d,None)
-  'e := q("foreach a generate UPPER(name)")
-  check('e,None)
 
 
+}
+
+class UdfTest extends BasicPigTest2("Nested","") {
+  registerFunction(new TestFunction())
+  import TestSchemas.Student._
+  'a := load(baseLocation + "student2.txt") using "PigStorage(' ')" as Student
+
+  'g := foreach('a) generate (TestFunction(Student.name))
+  check('g,None)
 }
 
 class StreamTest extends BasicPigTest2("Nested","") {
 
   import TestSchemas.Integer._
-
   // TODO : Need Support for Stream Test
-
+  'a := load(baseLocation + "student2.txt") using "PigStorage(' ')" as Student
+  'b := stream ('a) through "test output"
 }
 
 
